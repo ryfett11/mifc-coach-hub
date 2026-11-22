@@ -192,7 +192,7 @@
     <div class="hub-tile" onclick="switchView('analysis')">
       <div class="tile-icon">📊</div>
       <b>Match Analysis</b>
-      <span>Live event coder & coach rubric</span>
+      <span>Live event coder & visual match card</span>
     </div>
   </div>
 
@@ -400,10 +400,10 @@
     <div class="form-group"><label>Player Autonomy & GBA Problem-Solving: <b id="rub2v">4</b>/5</label><input type="range" id="rub2" min="1" max="5" value="4" oninput="document.getElementById('rub2v').innerText=this.value"></div>
     <div class="form-group"><label>Concise Coaching Interventions: <b id="rub3v">4</b>/5</label><input type="range" id="rub3" min="1" max="5" value="4" oninput="document.getElementById('rub3v').innerText=this.value"></div>
     <div class="grid-2" style="margin-top:8px;">
-  <button class="btn btn-maroon" onclick="shareMatchCard()">📲 Share Match Card</button>
-  <button class="btn btn-gold" onclick="downloadMatchCard()">🖼️ Save Card (.PNG)</button>
-</div>
-<button class="btn btn-outline btn-sm" style="width:100%; margin-top:6px;" onclick="copyMatchReport()">📋 Copy Text Only</button>
+      <button class="btn btn-maroon" onclick="shareMatchCard()">📲 Share Match Card</button>
+      <button class="btn btn-gold" onclick="downloadMatchCard()">🖼️ Save Card (.PNG)</button>
+    </div>
+    <button class="btn btn-outline btn-sm" style="width:100%; margin-top:6px;" onclick="copyMatchReport()">📋 Copy Text Only</button>
   </div>
 </section>
 
@@ -491,7 +491,7 @@ function copyPHVReport() {
   navigator.clipboard.writeText(txt); showToast('PHV report copied!');
 }
 
-// --- 3. MATCHDAY LIVE CODER & ANALYSIS ---
+// --- 3. MATCHDAY LIVE CODER, VISUAL MATCH CARD & NATIVE SHARE ---
 let clockSec = 0, clockInt = null;
 const kpis = { lbp: 0, cp: 0, f3: 0, shots: 0, turn: 0, trans: 0 };
 
@@ -517,7 +517,11 @@ function incKPI(key) { kpis[key]++; document.getElementById('kpi-' + key).innerT
 function resetKPIs() { Object.keys(kpis).forEach(k => { kpis[k] = 0; document.getElementById('kpi-' + k).innerText = '0'; }); showToast('Counters reset'); }
 
 function copyMatchReport() {
- function wrapMatchText(c, text, x, y, maxW, lineH) {
+  const txt = `📊 MERCER ISLAND FC MATCH REPORT\nOpponent: ${document.getElementById('matchOpp').value || 'N/A'}\nFocus: ${document.getElementById('matchFocus').value || 'N/A'}\nClock: ${document.getElementById('matchClock').innerText}\n\nLIVE KPIs:\n• Line-Breaking Passes: ${kpis.lbp}\n• Counter-Press Wins (<6s): ${kpis.cp}\n• Final Third Entries: ${kpis.f3}\n• Shots on Target: ${kpis.shots}\n• Build-Up Turnovers: ${kpis.turn}\n• Fast Break Chances: ${kpis.trans}\n\nHALF-TIME NOTES:\n${document.getElementById('matchHT').value}\n\nPOST-MATCH REFLECTION:\n${document.getElementById('matchPost').value}\n\nRUBRIC: Ball Rolling ${document.getElementById('rub1').value}/5 | Autonomy ${document.getElementById('rub2').value}/5 | Clarity ${document.getElementById('rub3').value}/5`;
+  navigator.clipboard.writeText(txt); showToast('Full Match Report copied!');
+}
+
+function wrapMatchText(c, text, x, y, maxW, lineH) {
   const lines = (text || '—').split('\n');
   let curY = y;
   lines.forEach(p => {
@@ -543,11 +547,9 @@ function buildMatchCardDataURL() {
   mc.height = 1040;
   const c = mc.getContext('2d');
 
-  // Background
   c.fillStyle = '#F4F6F8';
   c.fillRect(0, 0, mc.width, mc.height);
 
-  // Header Banner
   c.fillStyle = '#7A1C24';
   c.fillRect(0, 0, mc.width, 108);
   c.fillStyle = '#D4AF37';
@@ -564,7 +566,6 @@ function buildMatchCardDataURL() {
   c.fillStyle = '#F8F9FA';
   c.fillText(`${opp}   |   Focus: ${focus}   |   Clock: ${clock}`, 30, 82);
 
-  // 6 KPI Cards (3x2 Grid)
   const kpiItems = [
     ['Line-Breaking Passes', kpis.lbp],
     ['Counter-Press Wins (<6s)', kpis.cp],
@@ -594,7 +595,6 @@ function buildMatchCardDataURL() {
   });
   c.textAlign = 'left';
 
-  // Half-Time Adjustments Box
   c.fillStyle = '#FFFFFF';
   c.fillRect(30, 380, 740, 210);
   c.strokeStyle = '#DCE0E5';
@@ -607,7 +607,6 @@ function buildMatchCardDataURL() {
   c.font = '15px sans-serif';
   wrapMatchText(c, document.getElementById('matchHT').value, 50, 438, 700, 22);
 
-  // Post-Match Reflection Box
   c.fillStyle = '#FFFFFF';
   c.fillRect(30, 610, 740, 240);
   c.strokeStyle = '#DCE0E5';
@@ -620,7 +619,6 @@ function buildMatchCardDataURL() {
   c.font = '15px sans-serif';
   wrapMatchText(c, document.getElementById('matchPost').value, 50, 668, 700, 22);
 
-  // Coach Rubric Bar
   const r1 = document.getElementById('rub1').value;
   const r2 = document.getElementById('rub2').value;
   const r3 = document.getElementById('rub3').value;
@@ -636,7 +634,6 @@ function buildMatchCardDataURL() {
   c.font = 'bold 17px sans-serif';
   c.fillText(`Ball Rolling: ${r1}/5      |      Player Autonomy (GBA): ${r2}/5      |      Coaching Clarity: ${r3}/5`, 50, 945);
 
-  // Footer
   c.fillStyle = '#777777';
   c.font = '12px sans-serif';
   c.fillText('Mercer Island FC • Coaching & Sports Science Hub', 30, 1015);
@@ -671,9 +668,6 @@ async function shareMatchCard() {
     }
   } catch (e) {}
   downloadMatchCard();
-} 
-  const txt = `📊 MERCER ISLAND FC MATCH REPORT\nOpponent: ${document.getElementById('matchOpp').value || 'N/A'}\nFocus: ${document.getElementById('matchFocus').value || 'N/A'}\nClock: ${document.getElementById('matchClock').innerText}\n\nLIVE KPIs:\n• Line-Breaking Passes: ${kpis.lbp}\n• Counter-Press Wins (<6s): ${kpis.cp}\n• Final Third Entries: ${kpis.f3}\n• Shots on Target: ${kpis.shots}\n• Build-Up Turnovers: ${kpis.turn}\n• Fast Break Chances: ${kpis.trans}\n\nHALF-TIME NOTES:\n${document.getElementById('matchHT').value}\n\nPOST-MATCH REFLECTION:\n${document.getElementById('matchPost').value}\n\nRUBRIC: Ball Rolling ${document.getElementById('rub1').value}/5 | Autonomy ${document.getElementById('rub2').value}/5 | Clarity ${document.getElementById('rub3').value}/5`;
-  navigator.clipboard.writeText(txt); showToast('Full Match Report copied!');
 }
 
 // --- 4. SESSION DESIGNER CANVAS ---
@@ -810,69 +804,4 @@ function loadPreset(id) {
   state.zones = JSON.parse(JSON.stringify(diag.zones || []));
   document.getElementById('sessionTitle').value = item.title;
   document.getElementById('sessionAge').value = item.age;
-  document.getElementById('sessionDims').value = item.dims;
-  document.getElementById('sessionObjective').value = item.obj;
-  document.getElementById('sessionRules').value = item.rules;
-  document.getElementById('sessionPoints').value = item.pts;
-  document.getElementById('sessionProg').value = item.prog || '';
-  draw();
-  showToast('Loaded: ' + item.title);
-}
-
-// --- SAVE & SHARE ---
-function saveSessionLocal() {
-  const title = document.getElementById('sessionTitle').value || 'MIFC Session';
-  const saved = JSON.parse(localStorage.getItem('mifc_mobile_sessions') || '{}');
-  saved[title] = { state, title, age: document.getElementById('sessionAge').value, dims: document.getElementById('sessionDims').value, obj: document.getElementById('sessionObjective').value, rules: document.getElementById('sessionRules').value, pts: document.getElementById('sessionPoints').value, prog: document.getElementById('sessionProg').value };
-  localStorage.setItem('mifc_mobile_sessions', JSON.stringify(saved));
-  showToast('Saved "' + title + '" to device!');
-}
-function renderHubSaved() {
-  const saved = JSON.parse(localStorage.getItem('mifc_mobile_sessions') || '{}');
-  const box = document.getElementById('hubSavedList');
-  const keys = Object.keys(saved);
-  if (!keys.length) { box.innerHTML = 'No custom sessions saved yet.'; return; }
-  box.innerHTML = '';
-  keys.forEach(k => {
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee;';
-    row.innerHTML = `<b>⭐ ${k}</b>`;
-    const btn = document.createElement('button'); btn.className = 'btn btn-outline btn-sm'; btn.innerText = 'Open';
-    btn.onclick = () => {
-      const s = saved[k]; state = s.state;
-      document.getElementById('sessionTitle').value = s.title; document.getElementById('sessionAge').value = s.age;
-      document.getElementById('sessionDims').value = s.dims; document.getElementById('sessionObjective').value = s.obj;
-      document.getElementById('sessionRules').value = s.rules; document.getElementById('sessionPoints').value = s.pts;
-      document.getElementById('sessionProg').value = s.prog || '';
-      switchView('designer'); draw();
-    };
-    row.appendChild(btn); box.appendChild(row);
-  });
-}
-function downloadSessionCard() {
-  const link = document.createElement('a');
-  link.download = 'MIFC_' + document.getElementById('sessionTitle').value.replace(/[^a-z0-9]/gi,'_') + '.png';
-  link.href = canvas.toDataURL('image/png'); link.click(); showToast('Saved Pitch Diagram (.PNG)');
-}
-async function shareCurrentSession() {
-  const title = document.getElementById('sessionTitle').value;
-  const text = `⚽ MIFC Session: ${title}\n📐 ${document.getElementById('sessionDims').value}\n🎯 ${document.getElementById('sessionObjective').value}\n\n${document.getElementById('sessionRules').value}`;
-  if (navigator.share) { try { await navigator.share({ title: 'MIFC Session', text }); return; } catch(e) {} }
-  navigator.clipboard.writeText(text); showToast('Session plan copied to clipboard!');
-}
-
-window.onload = () => {
-  populatePresets();
-  runPitchCalc();
-  runPHV();
-  if (typeof RAW_LIBRARY !== 'undefined') {
-    document.getElementById('presetSelect').value = 'press_1';
-    loadPreset('press_1');
-  } else {
-    draw();
-  }
-  renderHubSaved();
-};
-</script>
-</body>
-</html>
+  document.get
