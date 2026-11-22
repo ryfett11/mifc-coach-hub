@@ -1,1466 +1,698 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#6B1D2F" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="MIFC Hub" />
-  <title>MIFC Matchday &amp; Sports Science Hub</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            mifc: {
-              maroon: '#6B1D2F',
-              burgundy: '#800020',
-              dark: '#4A1220',
-              gold: '#D4AF37',
-              amber: '#F59E0B',
-              cream: '#FDFBF7'
-            }
-          },
-          fontFamily: {
-            sans: ['Arial', 'Helvetica', 'sans-serif']
-          }
-        }
-      }
-    };
-  </script>
-  <style>
-    * {
-      font-family: Arial, Helvetica, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      box-sizing: border-box;
-    }
-    html, body {
-      margin: 0;
-      padding: 0;
-      background-color: #f1f5f9;
-      color: #0f172a;
-      overflow-x: hidden;
-    }
-    /* Custom subtle scrollbar */
-    ::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 4px;
-    }
-    .tab-panel {
-      display: none;
-    }
-    .tab-panel.active {
-      display: block;
-      animation: fadeIn 0.16s ease-out;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0.7; transform: translateY(2px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .touch-btn:active {
-      transform: scale(0.97);
-    }
-    /* High-visibility inputs on mobile */
-    input, select, textarea {
-      font-size: 16px !important; /* Prevents iOS auto-zoom on focus */
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mercer Island FC — Coaching & Sports Science App</title>
+
+<!-- Mobile App / PWA Meta Tags -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MIFC Hub">
+<meta name="theme-color" content="#7A1C24">
+
+<style>
+  :root {
+    --mifc-maroon: #7A1C24;
+    --mifc-dark: #4A0E13;
+    --mifc-gold: #D4AF37;
+    --bg-light: #F4F6F8;
+    --card-bg: #FFFFFF;
+    --text-dark: #1E2227;
+    --nav-height: 62px;
+    --header-height: 54px;
+  }
+  * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; padding: 0; background: var(--bg-light); color: var(--text-dark); padding-top: var(--header-height); padding-bottom: var(--nav-height); }
+
+  /* Fixed App Header */
+  header {
+    position: fixed; top: 0; left: 0; right: 0; height: var(--header-height);
+    background: linear-gradient(135deg, var(--mifc-dark), var(--mifc-maroon));
+    color: white; padding: 0 14px; display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25); z-index: 100;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-badge {
+    background: white; color: var(--mifc-maroon); font-weight: 900; font-size: 14px;
+    width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--mifc-gold);
+  }
+  .brand h1 { margin: 0; font-size: 15px; letter-spacing: 0.3px; }
+  .brand span { font-size: 10px; opacity: 0.85; display: block; font-weight: normal; }
+
+  /* 5-Tab Bottom Navigation Bar */
+  nav.bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height);
+    background: white; border-top: 1px solid #ddd; display: grid; grid-template-columns: repeat(5, 1fr);
+    z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    font-size: 10px; font-weight: 600; color: #666; cursor: pointer; border: none; background: none; padding: 4px 0;
+  }
+  .nav-item .icon { font-size: 19px; line-height: 1; }
+  .nav-item.active { color: var(--mifc-maroon); border-top: 3px solid var(--mifc-maroon); background: #fdf5f5; }
+
+  /* Views */
+  .app-view { display: none; padding: 12px; max-width: 1100px; margin: 0 auto; }
+  .app-view.active { display: block; }
+
+  /* Cards & Buttons */
+  .card {
+    background: var(--card-bg); border-radius: 10px; padding: 14px; margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06); border: 1px solid #e6e8eb;
+  }
+  .card h2 { margin: 0 0 8px 0; font-size: 15px; color: var(--mifc-maroon); display: flex; align-items: center; gap: 6px; }
+  .btn {
+    padding: 9px 14px; border-radius: 6px; border: none; font-size: 13px; font-weight: 600;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn-maroon { background: var(--mifc-maroon); color: white; }
+  .btn-gold { background: var(--mifc-gold); color: #111; }
+  .btn-dark { background: #2c3137; color: white; }
+  .btn-outline { background: white; color: var(--mifc-maroon); border: 1px solid var(--mifc-maroon); }
+  .btn-sm { padding: 6px 10px; font-size: 12px; }
+
+  /* Hub Grid */
+  .hub-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .hub-tile {
+    background: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 16px 10px;
+    text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+  }
+  .hub-tile:active { transform: scale(0.97); }
+  .hub-tile .tile-icon { font-size: 26px; }
+  .hub-tile b { font-size: 13px; color: var(--mifc-maroon); }
+  .hub-tile span { font-size: 11px; color: #666; }
+
+  /* Forms */
+  .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+  .form-group label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #555; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 9px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; background: white;
+  }
+  .form-group textarea { min-height: 70px; resize: vertical; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+  /* Designer Controls & Pitch */
+  .designer-controls { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; }
+  .designer-controls select, .designer-controls button { flex-shrink: 0; font-size: 12px; padding: 7px 10px; border-radius: 6px; border: 1px solid #ccc; }
+  .pitch-wrapper { background: #1e2227; border-radius: 8px; padding: 6px; margin-bottom: 10px; display: flex; justify-content: center; }
+  canvas { width: 100%; height: auto; border-radius: 4px; touch-action: none; display: block; max-width: 840px; }
+  .tool-strip { display: flex; gap: 6px; overflow-x: auto; padding: 5px 2px; margin-bottom: 8px; scrollbar-width: none; }
+  .tool-pill {
+    flex-shrink: 0; background: white; border: 1px solid #ccc; border-radius: 20px;
+    padding: 7px 12px; font-size: 12px; font-weight: 600; color: #333; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .tool-pill.active { background: var(--mifc-maroon); color: white; border-color: var(--mifc-maroon); }
+
+  /* Result Banners (Pitch Calc & PHV) */
+  .result-banner {
+    background: linear-gradient(135deg, var(--mifc-dark), var(--mifc-maroon));
+    color: white; border-radius: 8px; padding: 14px; text-align: center; margin-top: 10px;
+  }
+  .result-banner .big-num { font-size: 26px; font-weight: 900; color: var(--mifc-gold); margin: 4px 0; }
+  .result-banner .sub { font-size: 12px; opacity: 0.92; }
+  .phv-badge { display: inline-block; padding: 4px 10px; border-radius: 14px; font-size: 12px; font-weight: 800; margin-top: 6px; }
+  .phv-pre { background: #2196F3; color: white; }
+  .phv-circa { background: #FF9800; color: #111; }
+  .phv-post { background: #4CAF50; color: white; }
+
+  /* Live Matchday Coder */
+  .clock-bar {
+    display: flex; justify-content: space-between; align-items: center; background: #1e2227;
+    color: white; padding: 10px 14px; border-radius: 8px; margin-bottom: 10px;
+  }
+  .clock-time { font-size: 22px; font-weight: 800; font-family: monospace; color: var(--mifc-gold); }
+  .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px; }
+  .kpi-btn {
+    background: #f8f9fa; border: 1px solid #d8dce0; border-radius: 8px; padding: 10px;
+    display: flex; justify-content: space-between; align-items: center; cursor: pointer; text-align: left;
+  }
+  .kpi-btn:active { background: #FCE8E6; border-color: var(--mifc-maroon); }
+  .kpi-btn .kpi-label { font-size: 12px; font-weight: 700; color: #333; }
+  .kpi-btn .kpi-count {
+    background: var(--mifc-maroon); color: white; font-weight: 800; font-size: 15px;
+    min-width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  }
+
+  @media (min-width: 900px) {
+    .designer-desktop-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; align-items: start; }
+    .hub-grid { grid-template-columns: repeat(4, 1fr); }
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  #toast {
+    position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%);
+    background: #212529; color: white; padding: 10px 18px; border-radius: 25px;
+    font-size: 13px; font-weight: 600; border-left: 4px solid var(--mifc-gold);
+    opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 9999; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; }
+</style>
 </head>
-<body class="pb-24 select-none">
+<body>
 
-  <!-- STICKY TOP HEADER -->
-  <header class="sticky top-0 z-40 bg-mifc-maroon text-white shadow-md border-b-2 border-mifc-gold">
-    <div class="max-w-3xl mx-auto px-3 py-2.5 flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <!-- Inline SVG MIFC Crest -->
-        <div class="w-9 h-9 rounded-lg bg-white/10 border border-mifc-gold/70 flex items-center justify-center flex-shrink-0">
-          <svg viewBox="0 0 36 36" class="w-6 h-6" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 3L31 8V18C31 25.5 25.4 31.2 18 33.5C10.6 31.2 5 25.5 5 18V8L18 3Z" fill="#6B1D2F" stroke="#D4AF37" stroke-width="2.2"/>
-            <circle cx="18" cy="17.5" r="6.5" stroke="#FFFFFF" stroke-width="1.6"/>
-            <path d="M18 11V24M11.5 17.5H24.5" stroke="#D4AF37" stroke-width="1.4"/>
-          </svg>
-        </div>
-        <div class="min-w-0">
-          <div class="flex items-center gap-1.5">
-            <h1 class="text-sm sm:text-base font-bold tracking-tight truncate">MIFC Coaching Hub</h1>
-            <span id="offlineBadge" class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-200 border border-emerald-400/40">SAVED</span>
-          </div>
-          <p class="text-[11px] text-amber-200/90 truncate">Matchday &amp; Sports Science Toolkit</p>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-1.5 flex-shrink-0">
-        <button onclick="toggleInstallBanner()" title="Install on Phone" class="touch-btn p-2 rounded-lg bg-white/10 hover:bg-white/20 text-amber-200 border border-white/15" aria-label="Install Guide">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/>
-          </svg>
-        </button>
-        <button onclick="openExportModal()" class="touch-btn px-2.5 py-1.5 rounded-lg bg-mifc-gold text-slate-950 font-bold text-xs shadow-sm flex items-center gap-1">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
-          </svg>
-          <span>Export</span>
-        </button>
-      </div>
+<header>
+  <div class="brand">
+    <div class="brand-badge">MI</div>
+    <div>
+      <h1>MERCER ISLAND FC <span>Coaching & Sports Science Hub</span></h1>
     </div>
+  </div>
+  <button class="btn btn-gold btn-sm" onclick="shareCurrentSession()">📲 Share</button>
+</header>
 
-    <!-- Collapsible PWA Install Info Banner -->
-    <div id="installBanner" class="hidden bg-slate-900 text-slate-100 border-t border-slate-700 px-3 py-2.5 text-xs">
-      <div class="max-w-3xl mx-auto flex items-start justify-between gap-2">
-        <div class="space-y-1 leading-relaxed">
-          <p class="font-bold text-mifc-gold">Install on Touchline Phone (100% Offline Ready):</p>
-          <p><strong class="text-white">iPhone (Safari):</strong> Tap <span class="underline">Share</span> (square with arrow) &rarr; <strong class="text-amber-300">Add to Home Screen</strong>.</p>
-          <p><strong class="text-white">Android (Chrome):</strong> Tap <span class="underline">Menu (&vellip;)</span> &rarr; <strong class="text-amber-300">Install App / Add to Home Screen</strong>.</p>
-        </div>
-        <button onclick="toggleInstallBanner()" class="text-slate-400 hover:text-white font-bold px-2 py-1 text-sm">&times;</button>
-      </div>
+<!-- ==================== 1. CLUB HUB ==================== -->
+<section id="view-hub" class="app-view active">
+  <div class="card" style="background:linear-gradient(135deg, #4A0E13, #7A1C24); color:white; border:none;">
+    <h2 style="color:white; margin-bottom:4px;">Mercer Island FC Coach App</h2>
+    <p style="margin:0; font-size:13px; opacity:0.9;">All club coaching, pitch sizing, PHV maturation, and matchday analysis tools in one place. Tap <b>Share → Add to Home Screen</b> to install.</p>
+  </div>
+
+  <div class="hub-grid">
+    <div class="hub-tile" onclick="switchView('designer')">
+      <div class="tile-icon">📋</div>
+      <b>Session Designer</b>
+      <span>Drag-and-drop pitch & drill library</span>
     </div>
-  </header>
-
-  <!-- MAIN CONTENT CONTAINER -->
-  <main class="max-w-3xl mx-auto px-3 pt-3 space-y-3">
-
-    <!-- ========================================================= -->
-    <!-- TAB 1: MATCHDAY (LIVE CODING & TACTICAL DECISION TREE)    -->
-    <!-- ========================================================= -->
-    <section id="tab-matchday" class="tab-panel active space-y-3">
-
-      <!-- Fixture & Live Clock Card -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3">
-        <div class="grid grid-cols-2 gap-2 mb-2.5">
-          <input id="matchOpponent" type="text" placeholder="Opponent / Fixture..." oninput="saveMatchMeta()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-semibold text-slate-900 bg-slate-50 focus:bg-white focus:border-mifc-maroon outline-none" />
-          <div class="flex items-center gap-1.5">
-            <select id="matchPeriod" onchange="saveMatchMeta()" class="w-full px-2 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-mifc-maroon bg-slate-50 outline-none">
-              <option value="H1">1st Half (H1)</option>
-              <option value="H2">2nd Half (H2)</option>
-              <option value="Q1">Quarter 1 (Q1)</option>
-              <option value="Q2">Quarter 2 (Q2)</option>
-              <option value="Q3">Quarter 3 (Q3)</option>
-              <option value="Q4">Quarter 4 (Q4)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- High-Contrast Clock Bar -->
-        <div class="bg-slate-900 text-white rounded-xl p-3 flex items-center justify-between gap-2">
-          <div>
-            <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Match Clock (Syncs Rotation)</div>
-            <div id="clockDisplay" class="text-3xl font-extrabold tracking-tight tabular-nums text-mifc-gold">00:00</div>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <button id="btnTimerToggle" onclick="toggleTimer()" class="touch-btn px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow">
-              Start
-            </button>
-            <button onclick="confirmResetTimer()" class="touch-btn px-3 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs">
-              Reset
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 4 Moments of the Game: Tap-to-Tally Counters -->
-      <div class="space-y-2.5">
-        <!-- Moment 1: In Possession -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div class="bg-emerald-800 text-white px-3 py-1.5 flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider">1. In Possession (Build &amp; Create)</span>
-            <span class="text-[11px] text-emerald-200">Tap to tally</span>
-          </div>
-          <div id="tally-inPossession" class="p-2.5 grid grid-cols-1 sm:grid-cols-3 gap-2"></div>
-        </div>
-
-        <!-- Moment 2: Out of Possession -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div class="bg-mifc-maroon text-white px-3 py-1.5 flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider">2. Out of Possession (Press &amp; Protect)</span>
-            <span class="text-[11px] text-amber-200">Tap to tally</span>
-          </div>
-          <div id="tally-outPossession" class="p-2.5 grid grid-cols-1 sm:grid-cols-3 gap-2"></div>
-        </div>
-
-        <!-- Moment 3 & 4: Transitions -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div class="bg-slate-800 text-white px-3 py-1.5 flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider">3 &amp; 4. Game Transitions</span>
-            <span class="text-[11px] text-slate-300">A&rarr;D &amp; D&rarr;A</span>
-          </div>
-          <div id="tally-transitions" class="p-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
-        </div>
-      </div>
-
-      <!-- If / Then Tactical Decision Tree Accordion -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="bg-slate-900 text-white px-3 py-2 flex items-center justify-between border-b border-mifc-gold">
-          <div>
-            <h2 class="text-xs font-bold uppercase tracking-wider text-mifc-gold">If / Then Tactical Decision Tree</h2>
-            <p class="text-[11px] text-slate-300">Tap scenario for rapid half-time adjustment</p>
-          </div>
-          <span class="text-[10px] px-2 py-0.5 rounded bg-white/10 text-slate-200 font-bold">SHEET 04</span>
-        </div>
-        <div id="decisionTreeList" class="divide-y divide-slate-200"></div>
-      </div>
-
-      <!-- In-Game Timestamped Adjustment Log -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 space-y-2.5">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">In-Game Adjustment &amp; Sub Log</h2>
-          <span class="text-[11px] text-slate-500">Auto-stamped with match min</span>
-        </div>
-        <div class="flex gap-1.5">
-          <input id="adjNoteInput" type="text" placeholder="e.g., Dropped back line 5 yds; inverted #7..." class="flex-1 px-3 py-2 rounded-lg border border-slate-300 text-sm bg-slate-50 focus:bg-white focus:border-mifc-maroon outline-none" />
-          <button onclick="addAdjustmentNote()" class="touch-btn px-3.5 py-2 rounded-lg bg-mifc-maroon text-white font-bold text-xs shadow-sm whitespace-nowrap">
-            + Log
-          </button>
-        </div>
-        <div id="adjNotesList" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
-      </div>
-
-    </section>
-
-    <!-- ========================================================= -->
-    <!-- TAB 2: ROTATION (PLAYER MINUTES & FAIR PLAY MANDATE)      -->
-    <!-- ========================================================= -->
-    <section id="tab-rotation" class="tab-panel space-y-3">
-
-      <!-- Fair Play Summary Header -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 space-y-2.5">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-sm font-bold text-slate-900">MIFC 50% Fair Play Rotation Tracker</h2>
-            <p class="text-xs text-slate-500">Tap player status to toggle On Pitch / Bench</p>
-          </div>
-          <div class="text-right">
-            <label for="matchDurationInput" class="block text-[10px] font-bold uppercase text-slate-500">Total Match</label>
-            <select id="matchDurationInput" onchange="updateMatchDuration()" class="px-2 py-1 rounded-lg border border-slate-300 text-xs font-bold bg-slate-50 text-mifc-maroon">
-              <option value="40">40 Mins (U8)</option>
-              <option value="50">50 Mins (U10)</option>
-              <option value="60" selected>60 Mins (U12)</option>
-              <option value="70">70 Mins (U14)</option>
-              <option value="80">80 Mins (U16)</option>
-              <option value="90">90 Mins (U18)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- KPI Strip -->
-        <div class="grid grid-cols-3 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200 text-center">
-          <div>
-            <div class="text-[10px] font-bold uppercase text-slate-500">50% Quota Target</div>
-            <div id="fairPlayTargetDisplay" class="text-base font-extrabold text-mifc-maroon">30.0 min</div>
-          </div>
-          <div>
-            <div class="text-[10px] font-bold uppercase text-slate-500">On Pitch Now</div>
-            <div id="onPitchCountDisplay" class="text-base font-extrabold text-emerald-700">0 Players</div>
-          </div>
-          <div>
-            <div class="text-[10px] font-bold uppercase text-slate-500">Meeting 50% Rule</div>
-            <div id="quotaMetDisplay" class="text-base font-extrabold text-slate-800">0 / 12</div>
-          </div>
-        </div>
-
-        <!-- Add Player Quick Form -->
-        <div class="flex gap-1.5">
-          <input id="newPlayerName" type="text" placeholder="Add player name..." class="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm bg-slate-50 focus:bg-white outline-none" />
-          <button onclick="addPlayer()" class="touch-btn px-3 py-1.5 rounded-lg bg-slate-800 text-white font-bold text-xs">+ Player</button>
-          <button onclick="resetAllMinutes()" class="touch-btn px-2.5 py-1.5 rounded-lg border border-slate-300 text-slate-600 font-bold text-xs">Zero Mins</button>
-        </div>
-      </div>
-
-      <!-- Roster List -->
-      <div id="rosterList" class="space-y-2"></div>
-
-      <!-- LTAD Guideline Callout -->
-      <div class="bg-amber-50 border-l-4 border-mifc-gold rounded-r-xl p-3 text-xs text-slate-700 leading-relaxed">
-        <strong class="text-slate-900">MIFC LTAD Mandate:</strong> Every eligible player must play &ge;50% of total match duration. Tap position badges (<span class="font-bold">GK / DEF / MID / ATT</span>) to track role diversity and prevent early specialization.
-      </div>
-
-    </section>
-
-    <!-- ========================================================= -->
-    <!-- TAB 3: CALCULATORS (PITCH SIZE & MIRWALD PHV)             -->
-    <!-- ========================================================= -->
-    <section id="tab-calculators" class="tab-panel space-y-3">
-
-      <!-- Calculator 1: Pitch Size & Relative Area -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-          <div>
-            <h2 class="text-sm font-bold text-slate-900">Pitch Size &amp; SSG Area Calculator</h2>
-            <p class="text-xs text-slate-500">Relative area (m&sup2;/player) &amp; physiological load</p>
-          </div>
-          <span class="px-2 py-0.5 rounded bg-mifc-maroon text-white text-[10px] font-bold">SSG LAB</span>
-        </div>
-
-        <!-- Format Presets -->
-        <div class="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
-          <button onclick="applyPitchPreset(30, 20, 8)" class="touch-btn py-1.5 px-2 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-800">U8 (4v4)</button>
-          <button onclick="applyPitchPreset(55, 36, 14)" class="touch-btn py-1.5 px-2 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-800">U10 (7v7)</button>
-          <button onclick="applyPitchPreset(70, 45, 18)" class="touch-btn py-1.5 px-2 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-800">U12 (9v9)</button>
-          <button onclick="applyPitchPreset(100, 64, 22)" class="touch-btn py-1.5 px-2 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-800">11v11 Full</button>
-          <button onclick="applyPitchPreset(25, 20, 10)" class="touch-btn py-1.5 px-2 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-xs font-bold text-amber-900">5v5 Rondo</button>
-        </div>
-
-        <div class="grid grid-cols-3 gap-2">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Length (m)</label>
-            <input id="pitchLength" type="number" value="40" min="5" max="130" oninput="calcPitch()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 font-bold text-slate-900 bg-slate-50" />
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Width (m)</label>
-            <input id="pitchWidth" type="number" value="30" min="5" max="100" oninput="calcPitch()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 font-bold text-slate-900 bg-slate-50" />
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Total Players</label>
-            <input id="pitchPlayers" type="number" value="12" min="2" max="24" oninput="calcPitch()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 font-bold text-slate-900 bg-slate-50" />
-          </div>
-        </div>
-
-        <!-- Pitch Results Box -->
-        <div class="bg-slate-900 text-white rounded-xl p-3 space-y-2">
-          <div class="grid grid-cols-3 gap-2 text-center border-b border-slate-700 pb-2">
-            <div>
-              <div class="text-[10px] uppercase text-slate-400 font-bold">Total Area</div>
-              <div id="resTotalArea" class="text-base font-extrabold text-white">1,200 m&sup2;</div>
-            </div>
-            <div>
-              <div class="text-[10px] uppercase text-slate-400 font-bold">Area / Player</div>
-              <div id="resAreaPerPlayer" class="text-lg font-extrabold text-mifc-gold">100.0 m&sup2;</div>
-            </div>
-            <div>
-              <div class="text-[10px] uppercase text-slate-400 font-bold">Yards Equiv.</div>
-              <div id="resYardsDim" class="text-sm font-bold text-slate-200">44 &times; 33 yd</div>
-            </div>
-          </div>
-          <div id="resPitchGuidance" class="text-xs text-slate-200 leading-relaxed"></div>
-        </div>
-      </div>
-
-      <!-- Calculator 2: Peak Height Velocity (PHV) Mirwald Offset -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-          <div>
-            <h2 class="text-sm font-bold text-slate-900">Peak Height Velocity (PHV) Calculator</h2>
-            <p class="text-xs text-slate-500">Mirwald et al. (2002) Biological Maturity Offset</p>
-          </div>
-          <span class="px-2 py-0.5 rounded bg-slate-800 text-mifc-gold text-[10px] font-bold">LTAD</span>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Biological Sex</label>
-            <select id="phvSex" onchange="calcPHV()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 font-bold text-slate-900 bg-slate-50">
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Decimal Age (yrs)</label>
-            <input id="phvAge" type="number" step="0.1" value="13.5" min="8" max="18" oninput="calcPHV()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 font-bold text-slate-900 bg-slate-50" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-2">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Standing Ht (cm)</label>
-            <input id="phvHeight" type="number" step="0.5" value="162" min="110" max="210" oninput="calcPHV()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 font-bold text-slate-900 bg-slate-50" />
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Sitting Ht (cm)</label>
-            <input id="phvSitting" type="number" step="0.5" value="84" min="50" max="115" oninput="calcPHV()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 font-bold text-slate-900 bg-slate-50" />
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Weight (kg)</label>
-            <input id="phvWeight" type="number" step="0.5" value="51" min="20" max="110" oninput="calcPHV()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 font-bold text-slate-900 bg-slate-50" />
-          </div>
-        </div>
-
-        <!-- PHV Output Card -->
-        <div id="phvResultCard" class="rounded-xl p-3 border-2 bg-amber-50 border-amber-400 space-y-1.5">
-          <div class="flex items-center justify-between">
-            <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-600">Maturity Offset</span>
-              <div id="phvOffsetVal" class="text-xl font-extrabold text-slate-900">+0.12 Years</div>
-            </div>
-            <div class="text-right">
-              <span id="phvBandBadge" class="inline-block px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-500 text-white">CIRCA-PHV (GROWTH SPURT)</span>
-              <div id="phvEstAge" class="text-[11px] font-semibold text-slate-600 mt-0.5">Est. PHV Age: 13.4 yrs</div>
-            </div>
-          </div>
-          <p id="phvGuidance" class="text-xs text-slate-800 leading-relaxed pt-1 border-t border-amber-200"></p>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- ========================================================= -->
-    <!-- TAB 4: BRIDGE (TRAINING-TO-MATCH DAY TRANSFER)            -->
-    <!-- ========================================================= -->
-    <section id="tab-bridge" class="tab-panel space-y-3">
-
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-          <div>
-            <h2 class="text-sm font-bold text-slate-900">Training-to-Match Transfer (The Bridge)</h2>
-            <p class="text-xs text-slate-500">Evaluate midweek curriculum execution on matchday</p>
-          </div>
-          <span class="px-2 py-0.5 rounded bg-mifc-maroon text-white text-[10px] font-bold">SHEET 05</span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Primary Midweek Tactical Topic (1 Max)</label>
-            <input id="bridgeTopic" type="text" placeholder="e.g., Playing through high press via #6..." oninput="saveBridge()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 text-sm bg-slate-50 focus:bg-white outline-none" />
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">Game Model Phase &amp; Constraint Used</label>
-            <input id="bridgeConstraint" type="text" placeholder="e.g., Build-Up | 2-touch in middle third..." oninput="saveBridge()" class="w-full px-2.5 py-2 rounded-lg border border-slate-300 text-sm bg-slate-50 focus:bg-white outline-none" />
-          </div>
-        </div>
-      </div>
-
-      <!-- 3 Targeted On-Pitch Behaviors -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 space-y-3">
-        <div class="flex items-center justify-between">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Targeted On-Pitch Behaviors (1–5 Transfer Rating)</h3>
-        </div>
-        <div id="bridgeBehaviorsList" class="space-y-3"></div>
-      </div>
-
-      <!-- Loop Closure Notes -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div class="bg-white rounded-xl shadow-sm border border-emerald-200 p-3 space-y-1.5">
-          <label class="block text-xs font-bold uppercase text-emerald-800">Successful Transfer (Celebrate)</label>
-          <p class="text-[11px] text-slate-500">Which training habits appeared organically today?</p>
-          <textarea id="bridgeSuccess" rows="3" placeholder="e.g., Fullbacks held width early; #8 scanned before receiving..." oninput="saveBridge()" class="w-full p-2 rounded-lg border border-slate-300 text-sm bg-emerald-50/30 focus:bg-white outline-none"></textarea>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm border border-amber-200 p-3 space-y-1.5">
-          <label class="block text-xs font-bold uppercase text-amber-900">Breakdown &rarr; Tuesday Constraint</label>
-          <p class="text-[11px] text-slate-500">What failed under match stress to guide next session?</p>
-          <textarea id="bridgeBreakdown" rows="3" placeholder="e.g., Lost central counter-press; add 5-sec recovery rule on Tuesday..." oninput="saveBridge()" class="w-full p-2 rounded-lg border border-slate-300 text-sm bg-amber-50/30 focus:bg-white outline-none"></textarea>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- ========================================================= -->
-    <!-- TAB 5: REFLECT (APPRAISAL, GIBBS CYCLE & 12-WEEK HABITS)  -->
-    <!-- ========================================================= -->
-    <section id="tab-reflect" class="tab-panel space-y-3">
-
-      <!-- 1. 5-Dimension Coach Self-Appraisal -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-          <div>
-            <h2 class="text-sm font-bold text-slate-900">Coach Post-Match Self-Appraisal</h2>
-            <p class="text-xs text-slate-500">Rate sideline behavior (1 = Needs Focus, 5 = Mastery)</p>
-          </div>
-          <span id="appraisalAvgBadge" class="px-2.5 py-1 rounded-lg bg-mifc-maroon text-mifc-gold text-xs font-extrabold">Avg: 0.0 / 5</span>
-        </div>
-        <div id="appraisalList" class="space-y-2.5"></div>
-      </div>
-
-      <!-- 2. Interactive 6-Stage Gibbs' Reflective Cycle -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="bg-slate-900 text-white px-3 py-2.5 flex items-center justify-between border-b border-mifc-gold">
-          <div>
-            <h2 class="text-xs font-bold uppercase tracking-wider text-mifc-gold">Gibbs&rsquo; Reflective Cycle (6 Stages)</h2>
-            <p class="text-[11px] text-slate-300">Tap any stage to log structured post-session notes</p>
-          </div>
-          <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">24-HR RULE</span>
-        </div>
-        <div id="gibbsStagesList" class="divide-y divide-slate-200"></div>
-      </div>
-
-      <!-- 3. 12-Week Reflective Practice Habit Tracker -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 space-y-2.5">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-sm font-bold text-slate-900">12-Week Reflective Habit Tracker</h2>
-            <p class="text-xs text-slate-500">Tap weeks completed (Target: &ge;75% / 9 of 12 wks)</p>
-          </div>
-          <div class="text-right">
-            <span id="habitPctDisplay" class="text-sm font-extrabold text-emerald-700">0%</span>
-            <span class="block text-[10px] text-slate-500 font-bold">COMPLETED</span>
-          </div>
-        </div>
-
-        <!-- Progress Bar -->
-        <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-          <div id="habitProgressBar" class="h-full bg-emerald-600 transition-all duration-200" style="width: 0%"></div>
-        </div>
-
-        <div id="habitGridContainer" class="space-y-2.5 pt-1"></div>
-      </div>
-
-    </section>
-
-  </main>
-
-  <!-- FIXED BOTTOM THUMB-ZONE NAVIGATION BAR -->
-  <nav class="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-slate-300 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
-    <div class="max-w-3xl mx-auto grid grid-cols-5 h-16">
-      <button onclick="switchTab('matchday')" data-tab="matchday" class="nav-btn flex flex-col items-center justify-center gap-0.5 text-mifc-maroon font-bold border-t-2 border-mifc-maroon bg-rose-50/50">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 2"/>
-        </svg>
-        <span class="text-[11px]">Matchday</span>
-      </button>
-
-      <button onclick="switchTab('rotation')" data-tab="rotation" class="nav-btn flex flex-col items-center justify-center gap-0.5 text-slate-500 font-semibold border-t-2 border-transparent">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-        </svg>
-        <span class="text-[11px]">Rotation</span>
-      </button>
-
-      <button onclick="switchTab('calculators')" data-tab="calculators" class="nav-btn flex flex-col items-center justify-center gap-0.5 text-slate-500 font-semibold border-t-2 border-transparent">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
-          <rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="10" y2="16"/><line x1="14" y1="16" x2="16" y2="16"/>
-        </svg>
-        <span class="text-[11px]">Calculators</span>
-      </button>
-
-      <button onclick="switchTab('bridge')" data-tab="bridge" class="nav-btn flex flex-col items-center justify-center gap-0.5 text-slate-500 font-semibold border-t-2 border-transparent">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-        </svg>
-        <span class="text-[11px]">Bridge</span>
-      </button>
-
-      <button onclick="switchTab('reflect')" data-tab="reflect" class="nav-btn flex flex-col items-center justify-center gap-0.5 text-slate-500 font-semibold border-t-2 border-transparent">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <span class="text-[11px]">Reflect</span>
-      </button>
+    <div class="hub-tile" onclick="switchView('calc')">
+      <div class="tile-icon">📏</div>
+      <b>Pitch Calculator</b>
+      <span>Relative area per player (yd² / m²)</span>
     </div>
-  </nav>
-
-  <!-- EXPORT & SUMMARY MODAL -->
-  <div id="exportModal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-3">
-    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[88vh]">
-      <div class="bg-mifc-maroon text-white px-4 py-3 flex items-center justify-between border-b-2 border-mifc-gold">
-        <h3 class="font-bold text-sm">MIFC Matchday &amp; Reflection Summary</h3>
-        <button onclick="closeExportModal()" class="text-white/80 hover:text-white text-xl font-bold leading-none">&times;</button>
-      </div>
-      <div class="p-3 overflow-y-auto flex-1">
-        <p class="text-xs text-slate-500 mb-2">Copy formatted text for TeamSnap / WhatsApp / Email, or download CSV:</p>
-        <textarea id="exportPreviewText" readonly rows="12" class="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-xs font-mono text-slate-800 leading-relaxed"></textarea>
-      </div>
-      <div class="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2">
-        <button onclick="downloadCSV()" class="touch-btn flex-1 py-2.5 px-3 rounded-xl border border-slate-300 bg-white text-slate-800 font-bold text-xs shadow-xs">
-          Download CSV
-        </button>
-        <button onclick="copySummaryToClipboard()" class="touch-btn flex-1 py-2.5 px-3 rounded-xl bg-mifc-maroon text-white font-bold text-xs shadow">
-          Copy to Clipboard
-        </button>
-      </div>
+    <div class="hub-tile" onclick="switchView('phv')">
+      <div class="tile-icon">📈</div>
+      <b>PHV Calculator</b>
+      <span>Mirwald maturity offset & bio-banding</span>
+    </div>
+    <div class="hub-tile" onclick="switchView('analysis')">
+      <div class="tile-icon">📊</div>
+      <b>Match Analysis</b>
+      <span>Live event coder & coach rubric</span>
     </div>
   </div>
 
-  <!-- TOAST MESSAGE BOX (Zero native alerts) -->
-  <div id="toastBox" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 hidden bg-slate-900 text-white px-4 py-2 rounded-full shadow-lg text-xs font-bold border border-mifc-gold">
-    Copied to clipboard!
+  <div class="card" style="margin-top:12px;">
+    <h2>📁 Saved Sessions on This Device</h2>
+    <div id="hubSavedList" style="font-size:13px; color:#555;">No custom sessions saved yet.</div>
+  </div>
+</section>
+
+<!-- ==================== 2. SESSION DESIGNER ==================== -->
+<section id="view-designer" class="app-view">
+  <div class="designer-controls">
+    <select id="catFilter" onchange="populatePresets()">
+      <option value="ALL">All Categories</option>
+      <option value="PASSING">Passing & Technical</option>
+      <option value="RONDOS">Rondos & Possession</option>
+      <option value="BUILDUP">Build-Up & Formations</option>
+      <option value="ATTACKING">Attacking & Combos</option>
+      <option value="PRESSING">Pressing & Counter-Press</option>
+      <option value="DEFENDING">Defending & Shape</option>
+      <option value="TRANSITION">Transitions & SSGs</option>
+      <option value="FITNESS">Fitness & Set Pieces</option>
+    </select>
+    <select id="presetSelect" onchange="loadPreset(this.value)" style="max-width:210px; font-weight:600;"></select>
+    <select id="pitchType" onchange="state.pitch=this.value; draw();">
+      <option value="full">Full Pitch</option>
+      <option value="pep">Half-Spaces Grid</option>
+      <option value="half">Half Pitch</option>
+      <option value="ssg">SSG / Rondo Box</option>
+    </select>
+    <button class="btn-outline btn-sm" onclick="startBlank()">✨ Blank</button>
   </div>
 
-  <script>
-    // =========================================================================
-    // STATE MANAGEMENT & LOCALSTORAGE PERSISTENCE
-    // =========================================================================
-    const STORAGE_KEY = 'mifc_coach_hub_v1';
+  <div class="designer-desktop-grid">
+    <div>
+      <div class="pitch-wrapper">
+        <canvas id="pitchCanvas" width="840" height="540"></canvas>
+      </div>
+      <div class="tool-strip">
+        <div class="tool-pill active" id="mode-move" onclick="setMode('move')">✋ Drag</div>
+        <div class="tool-pill" id="mode-pass" onclick="setMode('pass')">➡️ Pass</div>
+        <div class="tool-pill" id="mode-run" onclick="setMode('run')">⚡ Run</div>
+        <div class="tool-pill" id="mode-dribble" onclick="setMode('dribble')">〰️ Dribble</div>
+        <div class="tool-pill" id="mode-zone" onclick="setMode('zone')">🟦 Zone</div>
+        <div class="tool-pill" id="mode-delete" onclick="setMode('delete')">🗑️ Erase</div>
+        <div class="tool-pill" onclick="undoAction()">↩️ Undo</div>
+        <div class="tool-pill" style="color:#dc3545;" onclick="clearPitch()">🔄 Clear</div>
+      </div>
+      <div class="tool-strip">
+        <div class="tool-pill" onclick="addToken('player','#7A1C24','M')">🔴 +Maroon</div>
+        <div class="tool-pill" onclick="addToken('player','#1976D2','B')">🔵 +Blue</div>
+        <div class="tool-pill" onclick="addToken('player','#FBC02D','N')">🟡 +Neutral</div>
+        <div class="tool-pill" onclick="addToken('player','#388E3C','GK')">🟢 +GK</div>
+        <div class="tool-pill" onclick="addToken('ball','#fff','')">⚽ +Ball</div>
+        <div class="tool-pill" onclick="addToken('cone','#FF6D00','')">🔺 +Cone</div>
+        <div class="tool-pill" onclick="addToken('mannequin','#E65100','')">🧍 +Mannequin</div>
+        <div class="tool-pill" onclick="addToken('minigoal','#fff','')">🥅 +Mini Goal</div>
+      </div>
+    </div>
 
-    const DEFAULT_STATE = {
-      activeTab: 'matchday',
-      match: {
-        opponent: '',
-        period: 'H1',
-        elapsedSeconds: 0,
-        durationMins: 60,
-        tallies: {
-          progPasses: 0,
-          finalThird: 0,
-          shotsOnTarget: 0,
-          pressRegains: 0,
-          tacklesInt: 0,
-          shotsConceded: 0,
-          counterAttacks: 0,
-          counterPress: 0
-        },
-        adjustments: []
-      },
-      roster: [
-        { id: 1, name: '1. Leo M.', onPitch: true, seconds: 0, pos: { GK: false, DEF: true, MID: false, ATT: false } },
-        { id: 2, name: '2. Maya K.', onPitch: true, seconds: 0, pos: { GK: false, DEF: true, MID: false, ATT: false } },
-        { id: 3, name: '3. Noah R.', onPitch: true, seconds: 0, pos: { GK: false, DEF: false, MID: true, ATT: false } },
-        { id: 4, name: '4. Sofia T.', onPitch: true, seconds: 0, pos: { GK: false, DEF: false, MID: true, ATT: false } },
-        { id: 5, name: '5. Liam B.', onPitch: true, seconds: 0, pos: { GK: false, DEF: false, MID: false, ATT: true } },
-        { id: 6, name: '6. Ava C.', onPitch: true, seconds: 0, pos: { GK: false, DEF: false, MID: false, ATT: true } },
-        { id: 7, name: '7. Ethan W.', onPitch: true, seconds: 0, pos: { GK: true, DEF: false, MID: false, ATT: false } },
-        { id: 8, name: '8. Chloe D.', onPitch: false, seconds: 0, pos: { GK: false, DEF: true, MID: false, ATT: false } },
-        { id: 9, name: '9. Lucas H.', onPitch: false, seconds: 0, pos: { GK: false, DEF: false, MID: true, ATT: false } },
-        { id: 10, name: '10. Zoe P.', onPitch: false, seconds: 0, pos: { GK: false, DEF: false, MID: false, ATT: true } },
-        { id: 11, name: '11. Caleb S.', onPitch: false, seconds: 0, pos: { GK: false, DEF: true, MID: true, ATT: false } },
-        { id: 12, name: '12. Mia G.', onPitch: false, seconds: 0, pos: { GK: false, DEF: false, MID: true, ATT: true } }
-      ],
-      calculators: {
-        pitchLength: 40,
-        pitchWidth: 30,
-        pitchPlayers: 12,
-        phvSex: 'male',
-        phvAge: 13.5,
-        phvHeight: 162,
-        phvSitting: 84,
-        phvWeight: 51
-      },
-      bridge: {
-        topic: '',
-        constraint: '',
-        behaviors: [
-          { id: 'b1', title: 'Individual Body Shape & Scanning', cue: 'Open half-turn on reception; check shoulder before first touch', rating: 0 },
-          { id: 'b2', title: 'Unit Tactical Spacing & Width', cue: 'Weak-side winger tucks in; fullback provides touchline outlet', rating: 0 },
-          { id: 'b3', title: '5-Second Transition Reaction', cue: 'Immediate 3-player counter-press or 5-yd compact recovery', rating: 0 }
-        ],
-        success: '',
-        breakdown: ''
-      },
-      reflect: {
-        appraisal: {
-          composure: 4,
-          verbal: 3,
-          halftime: 4,
-          fairplay: 5,
-          safety: 4
-        },
-        gibbs: {
-          s1: '',
-          s2: '',
-          s3: '',
-          s4: '',
-          s5: '',
-          s6: ''
-        },
-        habits: {} // key: "habitIdx_weekIdx" => true
-      }
+    <div class="card">
+      <h2>📝 Session Details</h2>
+      <div class="form-group"><label>Session Title</label><input type="text" id="sessionTitle" value="MIFC Session" oninput="draw()"></div>
+      <div class="grid-2">
+        <div class="form-group"><label>Age Group</label><input type="text" id="sessionAge" value="U11 - U18"></div>
+        <div class="form-group"><label>Dimensions / Time</label><input type="text" id="sessionDims" value="25x25 yds | 4x3m"></div>
+      </div>
+      <div class="form-group"><label>Tactical Objective</label><input type="text" id="sessionObjective" value=""></div>
+      <div class="form-group"><label>Organization & Rules</label><textarea id="sessionRules"></textarea></div>
+      <div class="form-group"><label>Key Coaching Points</label><textarea id="sessionPoints"></textarea></div>
+      <div class="grid-2">
+        <button class="btn btn-maroon" onclick="saveSessionLocal()">⭐ Save to Phone</button>
+        <button class="btn btn-gold" onclick="downloadSessionCard()">📱 Save PNG</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 3. PITCH SIZE CALCULATOR ==================== -->
+<section id="view-calc" class="app-view">
+  <div class="card">
+    <h2>📏 Relative Pitch Size Calculator</h2>
+    <p style="font-size:12px; color:#555; margin-top:0;">Calculate optimal grid dimensions based on player count and tactical/physiological load.</p>
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Outfield Players (excl. GKs)</label>
+        <input type="number" id="calcPlayers" value="10" min="2" max="22" oninput="runPitchCalc()">
+      </div>
+      <div class="form-group">
+        <label>Units</label>
+        <select id="calcUnit" onchange="runPitchCalc()">
+          <option value="yds" selected>Yards (yd²)</option>
+          <option value="m">Meters (m²)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Training Objective / Relative Pitch Area</label>
+      <select id="calcGoal" onchange="runPitchCalc()">
+        <option value="65">Tight Rondo / High Accel-Decel (65 / player)</option>
+        <option value="110" selected>Possession / Tactical SSG (110 / player)</option>
+        <option value="175">Transition / High-Speed Running (175 / player)</option>
+        <option value="260">Match-Realistic Extensive (260 / player)</option>
+      </select>
+    </div>
+
+    <div class="result-banner">
+      <div class="sub">RECOMMENDED GRID DIMENSIONS</div>
+      <div class="big-num" id="calcOutput">38 x 29 yds</div>
+      <div class="sub" id="calcMeta">Total Area: 1,100 yd² • 110 yd² per player</div>
+    </div>
+
+    <button class="btn btn-maroon" style="width:100%; margin-top:12px;" onclick="sendCalcToDesigner()">
+      📋 Apply Dimensions to Session Designer
+    </button>
+  </div>
+</section>
+
+<!-- ==================== 4. PHV MATURATION CALCULATOR ==================== -->
+<section id="view-phv" class="app-view">
+  <div class="card">
+    <h2>📈 Peak Height Velocity (PHV) Calculator</h2>
+    <p style="font-size:12px; color:#555; margin-top:0;">Mirwald et al. (2002) somatic maturation equation for youth bio-banding and growth-spurt load management.</p>
+    
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Sex</label>
+        <select id="phvSex" onchange="runPHV()">
+          <option value="M">Male</option>
+          <option value="F">Female</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Chronological Age (yrs)</label>
+        <input type="number" id="phvAge" value="13.5" step="0.1" min="8" max="18" oninput="runPHV()">
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="form-group">
+        <label>Standing Ht (cm)</label>
+        <input type="number" id="phvHeight" value="162" step="0.5" oninput="runPHV()">
+      </div>
+      <div class="form-group">
+        <label>Sitting Ht (cm)</label>
+        <input type="number" id="phvSitting" value="84" step="0.5" oninput="runPHV()">
+      </div>
+      <div class="form-group">
+        <label>Body Mass (kg)</label>
+        <input type="number" id="phvWeight" value="50" step="0.5" oninput="runPHV()">
+      </div>
+    </div>
+
+    <div class="result-banner">
+      <div class="sub">MATURITY OFFSET (YEARS FROM PHV)</div>
+      <div class="big-num" id="phvOffset">-0.42 yrs</div>
+      <div class="sub" id="phvDetails">Est. Age at PHV: 13.9 yrs • Leg Length: 78.0 cm</div>
+      <div id="phvBadge" class="phv-badge phv-circa">CIRCA-PHV (GROWTH SPURT)</div>
+    </div>
+
+    <div id="phvGuidance" style="margin-top:10px; padding:10px; background:#fff8e7; border-left:4px solid var(--mifc-gold); border-radius:4px; font-size:12px; line-height:1.45;"></div>
+
+    <button class="btn btn-outline" style="width:100%; margin-top:10px;" onclick="copyPHVReport()">📋 Copy PHV Summary</button>
+  </div>
+</section>
+
+<!-- ==================== 5. MATCHDAY ANALYSIS & RUBRIC ==================== -->
+<section id="view-analysis" class="app-view">
+  <div class="card">
+    <h2>⏱️ Live Matchday Event Coder</h2>
+    <div class="clock-bar">
+      <div class="clock-time" id="matchClock">00:00</div>
+      <div style="display:flex; gap:6px;">
+        <button class="btn btn-gold btn-sm" id="clockToggleBtn" onclick="toggleClock()">▶ Start</button>
+        <button class="btn btn-dark btn-sm" onclick="resetClock()">↺ Reset</button>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-btn" onclick="incKPI('lbp')"><span class="kpi-label">Line-Breaking Passes</span><span class="kpi-count" id="kpi-lbp">0</span></div>
+      <div class="kpi-btn" onclick="incKPI('cp')"><span class="kpi-label">Counter-Press Wins (&lt;6s)</span><span class="kpi-count" id="kpi-cp">0</span></div>
+      <div class="kpi-btn" onclick="incKPI('f3')"><span class="kpi-label">Final Third Entries</span><span class="kpi-count" id="kpi-f3">0</span></div>
+      <div class="kpi-btn" onclick="incKPI('shots')"><span class="kpi-label">Shots on Target</span><span class="kpi-count" id="kpi-shots">0</span></div>
+      <div class="kpi-btn" onclick="incKPI('turn')"><span class="kpi-label">Build-Up Turnovers</span><span class="kpi-count" id="kpi-turn">0</span></div>
+      <div class="kpi-btn" onclick="incKPI('trans')"><span class="kpi-label">Fast Break Chances</span><span class="kpi-count" id="kpi-trans">0</span></div>
+    </div>
+    <button class="btn btn-outline btn-sm" style="width:100%;" onclick="resetKPIs()">🔄 Reset All Counters</button>
+  </div>
+
+  <div class="card">
+    <h2>📝 Half-Time & Post-Match Notes</h2>
+    <div class="grid-2">
+      <div class="form-group"><label>Opponent / Date</label><input type="text" id="matchOpp" placeholder="vs Seattle United"></div>
+      <div class="form-group"><label>Game Model Focus</label><input type="text" id="matchFocus" placeholder="Build-up & Pressing"></div>
+    </div>
+    <div class="form-group"><label>Half-Time Adjustments (Max 2 Points)</label><textarea id="matchHT" placeholder="1. &#10;2. "></textarea></div>
+    <div class="form-group"><label>Post-Match Reflection & Next Training Focus</label><textarea id="matchPost" placeholder="What worked? What do we train next?"></textarea></div>
+  </div>
+
+  <div class="card">
+    <h2>🎯 Coach Self-Reflection Rubric (1–5)</h2>
+    <div class="form-group"><label>Ball Rolling Time (Target: 70%+): <b id="rub1v">4</b>/5</label><input type="range" id="rub1" min="1" max="5" value="4" oninput="document.getElementById('rub1v').innerText=this.value"></div>
+    <div class="form-group"><label>Player Autonomy & GBA Problem-Solving: <b id="rub2v">4</b>/5</label><input type="range" id="rub2" min="1" max="5" value="4" oninput="document.getElementById('rub2v').innerText=this.value"></div>
+    <div class="form-group"><label>Concise Coaching Interventions: <b id="rub3v">4</b>/5</label><input type="range" id="rub3" min="1" max="5" value="4" oninput="document.getElementById('rub3v').innerText=this.value"></div>
+    <button class="btn btn-maroon" style="width:100%; margin-top:6px;" onclick="copyMatchReport()">📲 Copy Full Match & Analysis Report</button>
+  </div>
+</section>
+
+<!-- 5-TAB BOTTOM NAVIGATION -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-hub" onclick="switchView('hub')"><span class="icon">🏠</span>Hub</button>
+  <button class="nav-item" id="nav-designer" onclick="switchView('designer')"><span class="icon">📋</span>Designer</button>
+  <button class="nav-item" id="nav-calc" onclick="switchView('calc')"><span class="icon">📏</span>Pitch</button>
+  <button class="nav-item" id="nav-phv" onclick="switchView('phv')"><span class="icon">📈</span>PHV</button>
+  <button class="nav-item" id="nav-analysis" onclick="switchView('analysis')"><span class="icon">📊</span>Analysis</button>
+</nav>
+
+<div id="toast">Saved!</div>
+
+<script>
+// --- NAVIGATION ---
+function switchView(name) {
+  document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'designer') setTimeout(draw, 30);
+  if (name === 'hub') renderHubSaved();
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerText = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// --- 1. PITCH SIZE CALCULATOR ---
+function runPitchCalc() {
+  const players = Math.max(2, parseInt(document.getElementById('calcPlayers').value) || 10);
+  const ratio = parseInt(document.getElementById('calcGoal').value) || 110;
+  const unit = document.getElementById('calcUnit').value;
+  const totalArea = players * ratio;
+  const length = Math.round(Math.sqrt(totalArea * 1.35));
+  const width = Math.round(totalArea / length);
+  document.getElementById('calcOutput').innerText = `${length} x ${width} ${unit}`;
+  document.getElementById('calcMeta').innerText = `Total Area: ${totalArea.toLocaleString()} ${unit}² • ${ratio} ${unit}² per player`;
+}
+function sendCalcToDesigner() {
+  const dims = document.getElementById('calcOutput').innerText;
+  document.getElementById('sessionDims').value = dims + ' | 4x3 min';
+  switchView('designer'); showToast('Applied ' + dims + ' to Designer!');
+}
+
+// --- 2. PHV MATURATION CALCULATOR (Mirwald et al., 2002) ---
+function runPHV() {
+  const sex = document.getElementById('phvSex').value;
+  const age = parseFloat(document.getElementById('phvAge').value) || 13.5;
+  const ht = parseFloat(document.getElementById('phvHeight').value) || 162;
+  const sit = parseFloat(document.getElementById('phvSitting').value) || 84;
+  const wt = parseFloat(document.getElementById('phvWeight').value) || 50;
+  const leg = Math.max(10, ht - sit);
+
+  let offset = 0;
+  if (sex === 'M') {
+    offset = -9.236 + (0.0002708 * (leg * sit)) + (-0.001663 * (age * leg)) + (0.007216 * (age * sit)) + (0.02292 * ((wt / ht) * 100));
+  } else {
+    offset = -9.376 + (0.0001882 * (leg * sit)) + (0.0022 * (age * leg)) + (0.005841 * (age * sit)) + (-0.002658 * (age * wt)) + (0.07693 * ((wt / ht) * 100));
+  }
+  const aphv = age - offset;
+  document.getElementById('phvOffset').innerText = (offset >= 0 ? '+' : '') + offset.toFixed(2) + ' yrs';
+  document.getElementById('phvDetails').innerText = `Est. Age at PHV: ${aphv.toFixed(1)} yrs • Leg Length: ${leg.toFixed(1)} cm`;
+
+  const badge = document.getElementById('phvBadge');
+  const guide = document.getElementById('phvGuidance');
+  if (offset < -1.0) {
+    badge.className = 'phv-badge phv-pre'; badge.innerText = 'PRE-PHV (BEFORE GROWTH SPURT)';
+    guide.innerHTML = '<b>MIFC Sports Science Guidance:</b> Focus on fundamental movement skills, agility, coordination, ball mastery, and technical enjoyment. Avoid heavy external resistance loads.';
+  } else if (offset <= 1.0) {
+    badge.className = 'phv-badge phv-circa'; badge.innerText = 'CIRCA-PHV (PEAK GROWTH SPURT)';
+    guide.innerHTML = '<b>MIFC Sports Science Guidance:</b> Elevated risk of growth-related injuries (Osgood-Schlatter, Sever\'s) and temporary coordination dip ("adolescent awkwardness"). Prioritize neuromuscular ACL prevention, mobility, and monitor weekly load spikes closely.';
+  } else {
+    badge.className = 'phv-badge phv-post'; badge.innerText = 'POST-PHV (MATURING / MATURE)';
+    guide.innerHTML = '<b>MIFC Sports Science Guidance:</b> High trainability window for structured strength, eccentric hamstring work (Nordics), power, and higher-intensity tactical conditioning.';
+  }
+}
+function copyPHVReport() {
+  const txt = `📈 MIFC PHV Assessment\nOffset: ${document.getElementById('phvOffset').innerText}\n${document.getElementById('phvDetails').innerText}\nPhase: ${document.getElementById('phvBadge').innerText}`;
+  navigator.clipboard.writeText(txt); showToast('PHV report copied!');
+}
+
+// --- 3. MATCHDAY LIVE CODER & ANALYSIS ---
+let clockSec = 0, clockInt = null;
+const kpis = { lbp: 0, cp: 0, f3: 0, shots: 0, turn: 0, trans: 0 };
+
+function toggleClock() {
+  const btn = document.getElementById('clockToggleBtn');
+  if (clockInt) { clearInterval(clockInt); clockInt = null; btn.innerText = '▶ Resume'; }
+  else {
+    clockInt = setInterval(() => {
+      clockSec++;
+      const m = String(Math.floor(clockSec / 60)).padStart(2, '0');
+      const s = String(clockSec % 60).padStart(2, '0');
+      document.getElementById('matchClock').innerText = `${m}:${s}`;
+    }, 1000);
+    btn.innerText = '⏸ Pause';
+  }
+}
+function resetClock() {
+  if (clockInt) { clearInterval(clockInt); clockInt = null; }
+  clockSec = 0; document.getElementById('matchClock').innerText = '00:00';
+  document.getElementById('clockToggleBtn').innerText = '▶ Start';
+}
+function incKPI(key) { kpis[key]++; document.getElementById('kpi-' + key).innerText = kpis[key]; }
+function resetKPIs() { Object.keys(kpis).forEach(k => { kpis[k] = 0; document.getElementById('kpi-' + k).innerText = '0'; }); showToast('Counters reset'); }
+
+function copyMatchReport() {
+  const txt = `📊 MERCER ISLAND FC MATCH REPORT\nOpponent: ${document.getElementById('matchOpp').value || 'N/A'}\nFocus: ${document.getElementById('matchFocus').value || 'N/A'}\nClock: ${document.getElementById('matchClock').innerText}\n\nLIVE KPIs:\n• Line-Breaking Passes: ${kpis.lbp}\n• Counter-Press Wins (<6s): ${kpis.cp}\n• Final Third Entries: ${kpis.f3}\n• Shots on Target: ${kpis.shots}\n• Build-Up Turnovers: ${kpis.turn}\n• Fast Break Chances: ${kpis.trans}\n\nHALF-TIME NOTES:\n${document.getElementById('matchHT').value}\n\nPOST-MATCH REFLECTION:\n${document.getElementById('matchPost').value}\n\nRUBRIC: Ball Rolling ${document.getElementById('rub1').value}/5 | Autonomy ${document.getElementById('rub2').value}/5 | Clarity ${document.getElementById('rub3').value}/5`;
+  navigator.clipboard.writeText(txt); showToast('Full Match Report copied!');
+}
+
+// --- 4. SESSION DESIGNER CANVAS ---
+const canvas = document.getElementById('pitchCanvas');
+const ctx = canvas.getContext('2d');
+let state = { pitch: 'ssg', mode: 'move', tokens: [], lines: [], zones: [] };
+let historyStack = [], dragItem = null, isDrawing = false, drawStart = null, drawCurrent = null, playerCounter = 1;
+
+function saveHistory() { historyStack.push(JSON.stringify({ tokens: state.tokens, lines: state.lines, zones: state.zones })); if (historyStack.length > 20) historyStack.shift(); }
+function undoAction() { if (!historyStack.length) return showToast('Nothing to undo'); const p = JSON.parse(historyStack.pop()); state.tokens = p.tokens; state.lines = p.lines; state.zones = p.zones; draw(); }
+function setMode(m) { state.mode = m; document.querySelectorAll('.tool-pill').forEach(p => p.classList.remove('active')); const el = document.getElementById('mode-' + m); if (el) el.classList.add('active'); }
+function clearPitch() { saveHistory(); state.tokens = []; state.lines = []; state.zones = []; draw(); showToast('Pitch cleared'); }
+function startBlank() { clearPitch(); document.getElementById('sessionTitle').value = 'New MIFC Session'; document.getElementById('sessionObjective').value = ''; document.getElementById('sessionRules').value = '1. \n2. '; document.getElementById('sessionPoints').value = '• \n• '; draw(); }
+function addToken(type, color, lbl) { saveHistory(); setMode('move'); if (type === 'player' && (lbl === 'M' || lbl === 'B')) lbl += (playerCounter++); state.tokens.push({ type, color, label: lbl, x: 420 + (Math.random()*60-30), y: 270 + (Math.random()*60-30) }); draw(); }
+
+function drawPitch() {
+  const w = canvas.width, h = canvas.height, pad = 30, pw = w - 60, ph = h - 60;
+  for (let i = 0; i < 12; i++) { ctx.fillStyle = i % 2 === 0 ? '#2E7D32' : '#338a38'; ctx.fillRect(i * (w / 12), 0, w / 12, h); }
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 2;
+  if (state.pitch === 'full' || state.pitch === 'pep') {
+    ctx.strokeRect(pad, pad, pw, ph); ctx.beginPath(); ctx.moveTo(w/2, pad); ctx.lineTo(w/2, h-pad); ctx.stroke();
+    ctx.beginPath(); ctx.arc(w/2, h/2, 55, 0, Math.PI*2); ctx.stroke();
+    ctx.strokeRect(pad, (h-240)/2, 110, 240); ctx.strokeRect(w-pad-110, (h-240)/2, 110, 240);
+    if (state.pitch === 'pep') {
+      ctx.save(); ctx.strokeStyle = 'rgba(255,235,59,0.5)'; ctx.setLineDash([8,6]);
+      [0.18,0.37,0.63,0.82].forEach(r => { ctx.beginPath(); ctx.moveTo(pad, pad+ph*r); ctx.lineTo(w-pad, pad+ph*r); ctx.stroke(); });
+      ctx.restore();
+    }
+  } else if (state.pitch === 'half') {
+    ctx.strokeRect(pad, pad, pw, ph); ctx.strokeRect((w-320)/2, pad, 320, 140);
+    ctx.beginPath(); ctx.arc(w/2, h-pad, 70, Math.PI, 0); ctx.stroke();
+  } else {
+    ctx.strokeRect(pad+60, pad+20, pw-120, ph-40);
+    ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.setLineDash([6,6]);
+    ctx.beginPath(); ctx.moveTo(w/2, pad+20); ctx.lineTo(w/2, h-pad-20); ctx.moveTo(pad+60, h/2); ctx.lineTo(w-pad-60, h/2); ctx.stroke(); ctx.restore();
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height); drawPitch();
+  state.zones.forEach(z => { ctx.save(); ctx.fillStyle = 'rgba(255,235,59,0.22)'; ctx.strokeStyle = 'rgba(255,235,59,0.8)'; ctx.setLineDash([6,4]); ctx.fillRect(z.x, z.y, z.w, z.h); ctx.strokeRect(z.x, z.y, z.w, z.h); ctx.restore(); });
+  state.lines.forEach(l => drawLine(l));
+  if (isDrawing && drawStart && drawCurrent) {
+    if (state.mode === 'zone') { ctx.save(); ctx.fillStyle = 'rgba(255,235,59,0.25)'; ctx.fillRect(drawStart.x, drawStart.y, drawCurrent.x-drawStart.x, drawCurrent.y-drawStart.y); ctx.restore(); }
+    else drawLine({ type: state.mode, x1: drawStart.x, y1: drawStart.y, x2: drawCurrent.x, y2: drawCurrent.y });
+  }
+  state.tokens.forEach(t => {
+    ctx.save();
+    if (t.type === 'player') {
+      ctx.beginPath(); ctx.arc(t.x, t.y, 16, 0, Math.PI*2); ctx.fillStyle = t.color; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+      ctx.fillStyle = t.color === '#FBC02D' ? '#111' : '#fff'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t.label, t.x, t.y);
+    } else if (t.type === 'ball') { ctx.beginPath(); ctx.arc(t.x, t.y, 8, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = '#111'; ctx.stroke(); }
+    else if (t.type === 'cone') { ctx.beginPath(); ctx.moveTo(t.x, t.y-9); ctx.lineTo(t.x-8, t.y+7); ctx.lineTo(t.x+8, t.y+7); ctx.closePath(); ctx.fillStyle = '#FF6D00'; ctx.fill(); }
+    else if (t.type === 'mannequin') { ctx.fillStyle = '#E65100'; ctx.fillRect(t.x-9, t.y-6, 18, 18); ctx.strokeStyle = '#fff'; ctx.strokeRect(t.x-9, t.y-6, 18, 18); }
+    else if (t.type === 'minigoal') { ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.strokeRect(t.x-18, t.y-8, 36, 16); }
+    ctx.restore();
+  });
+}
+
+function drawLine(l) {
+  ctx.save(); ctx.lineWidth = 3; const ang = Math.atan2(l.y2 - l.y1, l.x2 - l.x1);
+  ctx.strokeStyle = l.type === 'pass' ? '#fff' : (l.type === 'run' ? '#FFEB3B' : '#00E5FF'); ctx.fillStyle = ctx.strokeStyle;
+  if (l.type === 'run') ctx.setLineDash([8,6]);
+  ctx.beginPath(); ctx.moveTo(l.x1, l.y1); ctx.lineTo(l.x2, l.y2); ctx.stroke();
+  ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(l.x2, l.y2);
+  ctx.lineTo(l.x2 - 12*Math.cos(ang-0.5), l.y2 - 12*Math.sin(ang-0.5)); ctx.lineTo(l.x2 - 12*Math.cos(ang+0.5), l.y2 - 12*Math.sin(ang+0.5));
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const cx = e.touches ? e.touches[0].clientX : e.clientX, cy = e.touches ? e.touches[0].clientY : e.clientY;
+  return { x: (cx - r.left) * (canvas.width / r.width), y: (cy - r.top) * (canvas.height / r.height) };
+}
+function pDown(e) {
+  const pos = getPos(e);
+  if (state.mode === 'move') {
+    for (let i = state.tokens.length - 1; i >= 0; i--) if (Math.hypot(pos.x - state.tokens[i].x, pos.y - state.tokens[i].y) < 26) { saveHistory(); dragItem = state.tokens[i]; return; }
+  } else if (state.mode === 'delete') {
+    for (let i = state.tokens.length - 1; i >= 0; i--) if (Math.hypot(pos.x - state.tokens[i].x, pos.y - state.tokens[i].y) < 26) { saveHistory(); state.tokens.splice(i,1); draw(); return; }
+    for (let i = state.lines.length - 1; i >= 0; i--) { const l = state.lines[i]; if (Math.hypot(pos.x - (l.x1+l.x2)/2, pos.y - (l.y1+l.y2)/2) < 26) { saveHistory(); state.lines.splice(i,1); draw(); return; } }
+  } else { saveHistory(); isDrawing = true; drawStart = pos; drawCurrent = pos; }
+}
+function pMove(e) {
+  if (!dragItem && !isDrawing) return;
+  if (e.cancelable) e.preventDefault();
+  const pos = getPos(e);
+  if (dragItem) { dragItem.x = pos.x; dragItem.y = pos.y; draw(); } else { drawCurrent = pos; draw(); }
+}
+function pUp() {
+  if (dragItem) dragItem = null;
+  else if (isDrawing && drawStart && drawCurrent) {
+    if (state.mode === 'zone') state.zones.push({ x: Math.min(drawStart.x, drawCurrent.x), y: Math.min(drawStart.y, drawCurrent.y), w: Math.abs(drawCurrent.x-drawStart.x), h: Math.abs(drawCurrent.y-drawStart.y) });
+    else if (Math.hypot(drawCurrent.x-drawStart.x, drawCurrent.y-drawStart.y) > 15) state.lines.push({ type: state.mode, x1: drawStart.x, y1: drawStart.y, x2: drawCurrent.x, y2: drawCurrent.y });
+    isDrawing = false; drawStart = null; drawCurrent = null; draw();
+  }
+}
+canvas.addEventListener('mousedown', pDown); canvas.addEventListener('mousemove', pMove); canvas.addEventListener('mouseup', pUp);
+canvas.addEventListener('touchstart', pDown, {passive:false}); canvas.addEventListener('touchmove', pMove, {passive:false}); canvas.addEventListener('touchend', pUp);
+
+// --- DRILL LIBRARY (Paste your full 100-session RAW_LIBRARY from v5.0 here) ---
+const RAW_LIBRARY = [
+  {id:'p1', cat:'PASSING', pitch:'ssg', title:'Passing: Double Triangle Y-Drill', age:'U11-U18', dims:'25x20 yds', obj:'Rapid 1-2 lay-offs and angled support runs.', rules:'1. A plays 1-2 with B -> A passes diagonally to C -> C lays off to B -> B passes to D.', pts:'• Arrive on the half-turn.\n• Firm ground passes.'},
+  {id:'r1', cat:'RONDOS', pitch:'ssg', title:'Rondo: 4v2 (+1 Central Pivot)', age:'U11-U18', dims:'10x10 yds', obj:'Use sole control to invite pressure and play through the central pivot.', rules:'1. 4 outside + 1 central Floater vs 2 inside defenders.\n2. Last 2 players to touch the ball swap in on turnover.', pts:'• Stop the ball with the sole to freeze defenders.'},
+  {id:'b1', cat:'BUILDUP', pitch:'full', title:'Build-Up: 2-4-4 Bait the Press', age:'U13-U18', dims:'Full/Half Pitch', obj:'Invite pressure with sole control and break lines via a 3rd-man bounce.', rules:'1. 2 CBs split, 2 FBs level with 2 DMs, 4 high attackers pin the back 4.\n2. Play past the press into AM/F to bounce 1-touch to the free DM.', pts:'• Do not pass until the opponent commits.'},
+  {id:'a1', cat:'ATTACKING', pitch:'pep', title:'Attacking: Half-Space Receive & Cut-Back', age:'U12-U18', dims:'Half Pitch', obj:'Receive in the Half-Space and slide the Winger in behind for a low cut-back.', rules:'1. DM plays into AM in Half-Space -> slides high Winger in behind -> low cut-back for 3 box runners.', pts:'• Wingers stay glued to touchline to keep Half-Spaces open.'},
+  {id:'pr1', cat:'PRESSING', pitch:'ssg', title:'Pressing: 5v2 Win Within 6 Passes', age:'U10-U18', dims:'10x10 yds', obj:'High-intensity counter-pressing to win the ball within 6 passes.', rules:'1. 5 outside (1-touch) vs 2 inside defenders.\n2. Win within 6 passes = BOTH defenders escape!', pts:'• Nearest defender presses 100%; 2nd defender cuts the split pass.'},
+  {id:'d1', cat:'DEFENDING', pitch:'half', title:'Defending: Back 4 Compact Unit Arc', age:'U12-U18', dims:'Half Pitch', obj:'Compress centrally on passes to the Striker; shift into a curved Defensive Arc when wide.', rules:'1. Fullback steps to press wide Winger; other 3 defenders tuck across in a curved arc.', pts:'• Keep 10-12 yd distances; protect depth.'},
+  {id:'t1', cat:'TRANSITION', pitch:'full', title:'Transition: 5-5-5 Rule Counter-Attack', age:'U13-U18', dims:'Full Pitch (3 Zones)', obj:'Win the ball in the middle zone and launch a driving counter-attack.', rules:'1. Enter attacking zone within 5 seconds.\n2. Max 5 passes.\n3. Min 5 players sprint into attacking zone before scoring!', pts:'• Explosive driving runs past the ball carrier.'},
+  {id:'f1', cat:'FITNESS', pitch:'half', title:'Set Piece: Short Corner Set & Spin', age:'U11-U18', dims:'Attacking Half', obj:'Draw 2 defenders to the corner flag and spin behind them into the box.', rules:'1. No. 8 sprints short -> 1-touch set back to taker -> spins around 2 defenders for chipped return.', pts:'• Box runners hold runs until No. 8 spins.'}
+];
+
+function populatePresets() {
+  const cat = document.getElementById('catFilter').value;
+  const sel = document.getElementById('presetSelect');
+  sel.innerHTML = '<option value="">📚 Load Drill...</option>';
+  RAW_LIBRARY.filter(i => cat === 'ALL' || i.cat === cat).forEach(i => {
+    const o = document.createElement('option'); o.value = i.id; o.innerText = i.title; sel.appendChild(o);
+  });
+}
+
+function loadPreset(id) {
+  const item = RAW_LIBRARY.find(i => i.id === id);
+  if (!item) return;
+  state.pitch = item.pitch; document.getElementById('pitchType').value = item.pitch;
+  state.tokens = [
+    {type:'player', color:'#7A1C24', label:'M1', x:260, y:200}, {type:'player', color:'#7A1C24', label:'M2', x:420, y:140},
+    {type:'player', color:'#7A1C24', label:'M3', x:560, y:260}, {type:'player', color:'#1976D2', label:'B1', x:380, y:250},
+    {type:'player', color:'#1976D2', label:'B2', x:460, y:300}, {type:'ball', color:'#fff', label:'', x:278, y:200}
+  ];
+  state.lines = [{type:'pass', x1:278, y1:200, x2:402, y2:148}, {type:'pass', x1:435, y1:150, x2:545, y2:250}];
+  state.zones = [];
+  document.getElementById('sessionTitle').value = item.title;
+  document.getElementById('sessionAge').value = item.age;
+  document.getElementById('sessionDims').value = item.dims;
+  document.getElementById('sessionObjective').value = item.obj;
+  document.getElementById('sessionRules').value = item.rules;
+  document.getElementById('sessionPoints').value = item.pts;
+  draw(); showToast('Loaded: ' + item.title);
+}
+
+// --- SAVE & SHARE ---
+function saveSessionLocal() {
+  const title = document.getElementById('sessionTitle').value || 'MIFC Session';
+  const saved = JSON.parse(localStorage.getItem('mifc_mobile_sessions') || '{}');
+  saved[title] = { state, title, age: document.getElementById('sessionAge').value, dims: document.getElementById('sessionDims').value, obj: document.getElementById('sessionObjective').value, rules: document.getElementById('sessionRules').value, pts: document.getElementById('sessionPoints').value };
+  localStorage.setItem('mifc_mobile_sessions', JSON.stringify(saved));
+  showToast('Saved "' + title + '" to device!');
+}
+function renderHubSaved() {
+  const saved = JSON.parse(localStorage.getItem('mifc_mobile_sessions') || '{}');
+  const box = document.getElementById('hubSavedList');
+  const keys = Object.keys(saved);
+  if (!keys.length) { box.innerHTML = 'No custom sessions saved yet.'; return; }
+  box.innerHTML = '';
+  keys.forEach(k => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee;';
+    row.innerHTML = `<b>⭐ ${k}</b>`;
+    const btn = document.createElement('button'); btn.className = 'btn btn-outline btn-sm'; btn.innerText = 'Open';
+    btn.onclick = () => {
+      const s = saved[k]; state = s.state;
+      document.getElementById('sessionTitle').value = s.title; document.getElementById('sessionAge').value = s.age;
+      document.getElementById('sessionDims').value = s.dims; document.getElementById('sessionObjective').value = s.obj;
+      document.getElementById('sessionRules').value = s.rules; document.getElementById('sessionPoints').value = s.pts;
+      switchView('designer'); draw();
     };
-
-    let state = loadState();
-    let timerInterval = null;
-
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
-        const parsed = JSON.parse(raw);
-        return {
-          ...DEFAULT_STATE,
-          ...parsed,
-          match: { ...DEFAULT_STATE.match, ...(parsed.match || {}), tallies: { ...DEFAULT_STATE.match.tallies, ...((parsed.match && parsed.match.tallies) || {}) } },
-          calculators: { ...DEFAULT_STATE.calculators, ...(parsed.calculators || {}) },
-          bridge: { ...DEFAULT_STATE.bridge, ...(parsed.bridge || {}) },
-          reflect: {
-            ...DEFAULT_STATE.reflect,
-            ...(parsed.reflect || {}),
-            appraisal: { ...DEFAULT_STATE.reflect.appraisal, ...((parsed.reflect && parsed.reflect.appraisal) || {}) },
-            gibbs: { ...DEFAULT_STATE.reflect.gibbs, ...((parsed.reflect && parsed.reflect.gibbs) || {}) },
-            habits: (parsed.reflect && parsed.reflect.habits) || {}
-          }
-        };
-      } catch (e) {
-        return JSON.parse(JSON.stringify(DEFAULT_STATE));
-      }
-    }
-
-    function saveState() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        const badge = document.getElementById('offlineBadge');
-        if (badge) {
-          badge.textContent = 'SAVED';
-          badge.classList.remove('opacity-60');
-        }
-      } catch (e) {
-        console.warn('Storage full or restricted', e);
-      }
-    }
-
-    function showToast(msg) {
-      const box = document.getElementById('toastBox');
-      box.textContent = msg;
-      box.classList.remove('hidden');
-      clearTimeout(box._timeout);
-      box._timeout = setTimeout(() => box.classList.add('hidden'), 2200);
-    }
-
-    // =========================================================================
-    // NAVIGATION & HEADER ACTIONS
-    // =========================================================================
-    function switchTab(tabId) {
-      state.activeTab = tabId;
-      saveState();
-
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-      const target = document.getElementById('tab-' + tabId);
-      if (target) target.classList.add('active');
-
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        const isTarget = btn.getAttribute('data-tab') === tabId;
-        if (isTarget) {
-          btn.classList.add('text-mifc-maroon', 'font-bold', 'border-mifc-maroon', 'bg-rose-50/50');
-          btn.classList.remove('text-slate-500', 'font-semibold', 'border-transparent');
-        } else {
-          btn.classList.remove('text-mifc-maroon', 'font-bold', 'border-mifc-maroon', 'bg-rose-50/50');
-          btn.classList.add('text-slate-500', 'font-semibold', 'border-transparent');
-        }
-      });
-    }
-
-    function toggleInstallBanner() {
-      const banner = document.getElementById('installBanner');
-      banner.classList.toggle('hidden');
-    }
-
-    // =========================================================================
-    // TAB 1: MATCHDAY TIMER, TALLIES, DECISION TREE & ADJUSTMENTS
-    // =========================================================================
-    const TALLY_CONFIG = {
-      inPossession: [
-        { key: 'progPasses', label: 'Progressive Passes', sub: 'Line-breaking / forward' },
-        { key: 'finalThird', label: 'Final Third Entries', sub: 'Controlled penetration' },
-        { key: 'shotsOnTarget', label: 'Shots on Target', sub: 'Quality box finishes' }
-      ],
-      outPossession: [
-        { key: 'pressRegains', label: 'High/Mid Press Regains', sub: 'Won in opp half' },
-        { key: 'tacklesInt', label: 'Tackles / Interceptions', sub: 'Clean 1v1 & lane reads' },
-        { key: 'shotsConceded', label: 'Shots Conceded', sub: 'Opponent attempts' }
-      ],
-      transitions: [
-        { key: 'counterAttacks', label: 'Quick Counters (D→A)', sub: 'Forward pass < 4 secs' },
-        { key: 'counterPress', label: 'Counter-Press (A→D)', sub: 'Regained within 5 secs' }
-      ]
-    };
-
-    const DECISION_TREE_DATA = [
-      {
-        id: 'dt1',
-        problem: 'IF: Opponent plays long direct balls over our back line',
-        solution: 'THEN: Drop defensive line 5 yards early; center-backs split (one contests aerial first contact, one covers depth) while #6 locks onto second ball.'
-      },
-      {
-        id: 'dt2',
-        problem: 'IF: Opponent presses our GK & CBs high in pairs',
-        solution: 'THEN: Stretch fullbacks wide to touchline; drop #6 into blind-side pocket or clip diagonal over press into wide channel.'
-      },
-      {
-        id: 'dt3',
-        problem: 'IF: Opponent sits deep in a compact low block',
-        solution: 'THEN: Maximize horizontal pitch width; circulate rapidly across CBs (2-touch max) to shift block and isolate 1v1 wide.'
-      },
-      {
-        id: 'dt4',
-        problem: 'IF: Opponent overloads central midfield (+1 numerical advantage)',
-        solution: 'THEN: Invert weak-side winger into central half-space or tuck weak-side fullback inside alongside #6 pivot.'
-      }
-    ];
-
-    function formatClock(totalSec) {
-      const mins = Math.floor(totalSec / 60);
-      const secs = totalSec % 60;
-      return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
-    }
-
-    function toggleTimer() {
-      const btn = document.getElementById('btnTimerToggle');
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-        btn.textContent = 'Resume';
-        btn.classList.remove('bg-amber-600');
-        btn.classList.add('bg-emerald-600');
-        saveState();
-      } else {
-        btn.textContent = 'Pause';
-        btn.classList.remove('bg-emerald-600');
-        btn.classList.add('bg-amber-600');
-        timerInterval = setInterval(() => {
-          state.match.elapsedSeconds += 1;
-          // Increment active on-pitch players automatically
-          state.roster.forEach(p => {
-            if (p.onPitch) p.seconds += 1;
-          });
-          document.getElementById('clockDisplay').textContent = formatClock(state.match.elapsedSeconds);
-          if (state.match.elapsedSeconds % 5 === 0) {
-            renderRoster();
-            saveState();
-          }
-        }, 1000);
-      }
-    }
-
-    let resetConfirmPending = false;
-    function confirmResetTimer() {
-      const btn = event.target;
-      if (!resetConfirmPending) {
-        resetConfirmPending = true;
-        btn.textContent = 'Sure?';
-        btn.classList.add('bg-red-600', 'text-white');
-        setTimeout(() => {
-          resetConfirmPending = false;
-          btn.textContent = 'Reset';
-          btn.classList.remove('bg-red-600', 'text-white');
-        }, 2500);
-        return;
-      }
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-      }
-      state.match.elapsedSeconds = 0;
-      document.getElementById('clockDisplay').textContent = '00:00';
-      const startBtn = document.getElementById('btnTimerToggle');
-      startBtn.textContent = 'Start';
-      startBtn.classList.remove('bg-amber-600');
-      startBtn.classList.add('bg-emerald-600');
-      resetConfirmPending = false;
-      btn.textContent = 'Reset';
-      btn.classList.remove('bg-red-600', 'text-white');
-      saveState();
-      showToast('Match clock reset to 00:00');
-    }
-
-    function saveMatchMeta() {
-      state.match.opponent = document.getElementById('matchOpponent').value;
-      state.match.period = document.getElementById('matchPeriod').value;
-      saveState();
-    }
-
-    function adjustTally(key, delta) {
-      const current = state.match.tallies[key] || 0;
-      state.match.tallies[key] = Math.max(0, current + delta);
-      saveState();
-      renderTallies();
-    }
-
-    function renderTallies() {
-      Object.keys(TALLY_CONFIG).forEach(group => {
-        const container = document.getElementById('tally-' + group);
-        container.innerHTML = TALLY_CONFIG[group].map(item => {
-          const val = state.match.tallies[item.key] || 0;
-          return `
-            <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg p-2">
-              <div class="min-w-0 pr-2">
-                <div class="text-xs font-bold text-slate-900 truncate">${item.label}</div>
-                <div class="text-[10px] text-slate-500 truncate">${item.sub}</div>
-              </div>
-              <div class="flex items-center gap-1.5 flex-shrink-0">
-                <button onclick="adjustTally('${item.key}', -1)" class="touch-btn w-8 h-9 rounded-lg border border-slate-300 bg-white text-slate-700 font-extrabold text-base flex items-center justify-center">&minus;</button>
-                <span class="w-7 text-center text-base font-extrabold text-slate-900 tabular-nums">${val}</span>
-                <button onclick="adjustTally('${item.key}', 1)" class="touch-btn w-10 h-9 rounded-lg bg-mifc-maroon text-white font-extrabold text-base flex items-center justify-center shadow-xs">+</button>
-              </div>
-            </div>
-          `;
-        }).join('');
-      });
-    }
-
-    function renderDecisionTree() {
-      const container = document.getElementById('decisionTreeList');
-      container.innerHTML = DECISION_TREE_DATA.map((item, idx) => `
-        <div class="p-2.5">
-          <button onclick="toggleAccordion('dt-body-${idx}')" class="w-full text-left flex items-center justify-between gap-2">
-            <span class="text-xs font-bold text-slate-900">${item.problem}</span>
-            <span class="text-mifc-maroon font-extrabold text-sm flex-shrink-0">+</span>
-          </button>
-          <div id="dt-body-${idx}" class="hidden mt-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 font-medium leading-relaxed">
-            ${item.solution}
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function toggleAccordion(id) {
-      const el = document.getElementById(id);
-      if (el) el.classList.toggle('hidden');
-    }
-
-    function addAdjustmentNote() {
-      const input = document.getElementById('adjNoteInput');
-      const text = input.value.trim();
-      if (!text) return;
-      const min = Math.floor(state.match.elapsedSeconds / 60);
-      state.match.adjustments.unshift({
-        id: Date.now(),
-        minute: min + "'",
-        period: state.match.period,
-        text
-      });
-      input.value = '';
-      saveState();
-      renderAdjustments();
-      showToast('Adjustment logged');
-    }
-
-    function deleteAdjustment(id) {
-      state.match.adjustments = state.match.adjustments.filter(a => a.id !== id);
-      saveState();
-      renderAdjustments();
-    }
-
-    function renderAdjustments() {
-      const list = document.getElementById('adjNotesList');
-      if (!state.match.adjustments.length) {
-        list.innerHTML = `<p class="text-xs text-slate-400 italic py-1">No in-game adjustments logged yet.</p>`;
-        return;
-      }
-      list.innerHTML = state.match.adjustments.map(a => `
-        <div class="flex items-start justify-between gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs">
-          <div>
-            <span class="inline-block px-1.5 py-0.5 rounded bg-mifc-maroon text-white font-bold text-[10px] mr-1">${a.period} ${a.minute}</span>
-            <span class="text-slate-800 font-medium">${escapeHtml(a.text)}</span>
-          </div>
-          <button onclick="deleteAdjustment(${a.id})" class="text-slate-400 hover:text-red-600 font-bold px-1">&times;</button>
-        </div>
-      `).join('');
-    }
-
-    // =========================================================================
-    // TAB 2: PLAYER ROTATION & 50% FAIR PLAY TRACKER
-    // =========================================================================
-    function updateMatchDuration() {
-      state.match.durationMins = parseInt(document.getElementById('matchDurationInput').value, 10) || 60;
-      saveState();
-      renderRoster();
-    }
-
-    function togglePlayerPitch(id) {
-      const p = state.roster.find(x => x.id === id);
-      if (p) {
-        p.onPitch = !p.onPitch;
-        saveState();
-        renderRoster();
-      }
-    }
-
-    function adjustPlayerMins(id, deltaMins) {
-      const p = state.roster.find(x => x.id === id);
-      if (p) {
-        p.seconds = Math.max(0, p.seconds + deltaMins * 60);
-        saveState();
-        renderRoster();
-      }
-    }
-
-    function togglePlayerPos(id, posKey) {
-      const p = state.roster.find(x => x.id === id);
-      if (p) {
-        p.pos[posKey] = !p.pos[posKey];
-        saveState();
-        renderRoster();
-      }
-    }
-
-    function addPlayer() {
-      const input = document.getElementById('newPlayerName');
-      const name = input.value.trim();
-      if (!name) return;
-      state.roster.push({
-        id: Date.now(),
-        name,
-        onPitch: false,
-        seconds: 0,
-        pos: { GK: false, DEF: false, MID: false, ATT: false }
-      });
-      input.value = '';
-      saveState();
-      renderRoster();
-      showToast('Added ' + name);
-    }
-
-    function removePlayer(id) {
-      state.roster = state.roster.filter(p => p.id !== id);
-      saveState();
-      renderRoster();
-    }
-
-    function resetAllMinutes() {
-      state.roster.forEach(p => { p.seconds = 0; });
-      saveState();
-      renderRoster();
-      showToast('All player minutes reset to 0');
-    }
-
-    function renderRoster() {
-      const totalDuration = state.match.durationMins || 60;
-      const targetMins = totalDuration * 0.5;
-      document.getElementById('fairPlayTargetDisplay').textContent = targetMins.toFixed(1) + ' min';
-
-      let onPitchCount = 0;
-      let quotaMetCount = 0;
-
-      const html = state.roster.map(p => {
-        if (p.onPitch) onPitchCount++;
-        const minsPlayed = p.seconds / 60;
-        const metQuota = minsPlayed >= targetMins;
-        if (metQuota) quotaMetCount++;
-
-        const pctOfTarget = Math.min(100, Math.round((minsPlayed / targetMins) * 100));
-        const barColor = metQuota ? 'bg-emerald-600' : (pctOfTarget >= 60 ? 'bg-amber-500' : 'bg-rose-600');
-
-        const posButtons = ['GK', 'DEF', 'MID', 'ATT'].map(pk => {
-          const active = p.pos[pk];
-          return `<button onclick="togglePlayerPos(${p.id}, '${pk}')" class="px-1.5 py-0.5 rounded text-[10px] font-bold border ${active ? 'bg-slate-800 text-mifc-gold border-slate-800' : 'bg-white text-slate-400 border-slate-200'}">${pk}</button>`;
-        }).join('');
-
-        return `
-          <div class="bg-white rounded-xl shadow-xs border ${p.onPitch ? 'border-emerald-400 ring-1 ring-emerald-400/40' : 'border-slate-200'} p-2.5">
-            <div class="flex items-center justify-between gap-2 mb-1.5">
-              <div class="flex items-center gap-2 min-w-0">
-                <button onclick="togglePlayerPitch(${p.id})" class="touch-btn px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wide ${p.onPitch ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'}">
-                  ${p.onPitch ? 'ON PITCH' : 'BENCH'}
-                </button>
-                <span class="font-bold text-sm text-slate-900 truncate">${escapeHtml(p.name)}</span>
-              </div>
-
-              <div class="flex items-center gap-1 flex-shrink-0">
-                <button onclick="adjustPlayerMins(${p.id}, -5)" class="touch-btn px-1.5 py-0.5 rounded border border-slate-300 text-[11px] font-bold text-slate-600">-5m</button>
-                <span class="text-xs font-extrabold tabular-nums px-1 ${metQuota ? 'text-emerald-700' : 'text-slate-800'}">${minsPlayed.toFixed(1)}m</span>
-                <button onclick="adjustPlayerMins(${p.id}, 5)" class="touch-btn px-1.5 py-0.5 rounded border border-slate-300 text-[11px] font-bold text-slate-600">+5m</button>
-                <button onclick="removePlayer(${p.id})" title="Remove Player" class="text-slate-300 hover:text-red-500 font-bold pl-1 text-sm">&times;</button>
-              </div>
-            </div>
-
-            <!-- Progress bar toward 50% rule -->
-            <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-1.5">
-              <div class="h-full ${barColor} transition-all duration-200" style="width: ${pctOfTarget}%"></div>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-1">${posButtons}</div>
-              <span class="text-[10px] font-bold ${metQuota ? 'text-emerald-700' : 'text-slate-400'}">
-                ${metQuota ? '✓ 50% Quota Met' : `${Math.max(0, targetMins - minsPlayed).toFixed(1)}m to quota`}
-              </span>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      document.getElementById('rosterList').innerHTML = html;
-      document.getElementById('onPitchCountDisplay').textContent = onPitchCount + ' Players';
-      document.getElementById('quotaMetDisplay').textContent = `${quotaMetCount} / ${state.roster.length}`;
-    }
-
-    // =========================================================================
-    // TAB 3: PITCH SIZE & MIRWALD PHV CALCULATORS
-    // =========================================================================
-    function applyPitchPreset(len, wid, players) {
-      document.getElementById('pitchLength').value = len;
-      document.getElementById('pitchWidth').value = wid;
-      document.getElementById('pitchPlayers').value = players;
-      calcPitch();
-    }
-
-    function calcPitch() {
-      const len = Math.max(1, parseFloat(document.getElementById('pitchLength').value) || 40);
-      const wid = Math.max(1, parseFloat(document.getElementById('pitchWidth').value) || 30);
-      const players = Math.max(1, parseInt(document.getElementById('pitchPlayers').value, 10) || 12);
-
-      state.calculators.pitchLength = len;
-      state.calculators.pitchWidth = wid;
-      state.calculators.pitchPlayers = players;
-      saveState();
-
-      const totalArea = len * wid;
-      const areaPerPlayer = totalArea / players;
-      const lenYd = Math.round(len * 1.09361);
-      const widYd = Math.round(wid * 1.09361);
-
-      document.getElementById('resTotalArea').textContent = totalArea.toLocaleString() + ' m²';
-      document.getElementById('resAreaPerPlayer').textContent = areaPerPlayer.toFixed(1) + ' m²';
-      document.getElementById('resYardsDim').textContent = `${lenYd} × ${widYd} yd`;
-
-      let guidance = '';
-      if (areaPerPlayer < 65) {
-        guidance = '<strong class="text-amber-300">Intensive / Tight Zone (&lt;65 m&sup2;/player):</strong> High ball-contact frequency, rapid scanning, acceleration/deceleration &amp; close-control pressure. Limit continuous bouts to 3–4 mins.';
-      } else if (areaPerPlayer <= 135) {
-        guidance = '<strong class="text-emerald-300">Balanced Tactical Zone (65–135 m&sup2;/player):</strong> Ideal match-representative space for positional rotations, third-man runs, and balanced aerobic-anaerobic load.';
-      } else {
-        guidance = '<strong class="text-sky-300">Extensive / Transition Zone (&gt;135 m&sup2;/player):</strong> High-speed running &amp; sprint exposure, wide switches, and counter-attacking depth. Monitor hamstring/growth-spurt load.';
-      }
-      document.getElementById('resPitchGuidance').innerHTML = guidance;
-    }
-
-    function calcPHV() {
-      const sex = document.getElementById('phvSex').value;
-      const age = parseFloat(document.getElementById('phvAge').value) || 13.5;
-      const height = parseFloat(document.getElementById('phvHeight').value) || 162;
-      const sitting = parseFloat(document.getElementById('phvSitting').value) || 84;
-      const weight = parseFloat(document.getElementById('phvWeight').value) || 51;
-
-      state.calculators.phvSex = sex;
-      state.calculators.phvAge = age;
-      state.calculators.phvHeight = height;
-      state.calculators.phvSitting = sitting;
-      state.calculators.phvWeight = weight;
-      saveState();
-
-      const legLength = Math.max(10, height - sitting);
-      const weightByHeightRatio = (weight / height) * 100;
-
-      // Mirwald et al. (2002) Maturity Offset Equations
-      let offset = 0;
-      if (sex === 'male') {
-        offset = -9.236
-          + (0.0002708 * (legLength * sitting))
-          - (0.001663 * (age * legLength))
-          + (0.007216 * (age * sitting))
-          + (0.02292 * weightByHeightRatio);
-      } else {
-        offset = -9.376
-          + (0.0001882 * (legLength * sitting))
-          + (0.0022 * (age * legLength))
-          + (0.005841 * (age * sitting))
-          - (0.002658 * (age * weight))
-          + (0.07693 * weightByHeightRatio);
-      }
-
-      const estPhvAge = age - offset;
-      const sign = offset >= 0 ? '+' : '';
-      document.getElementById('phvOffsetVal').textContent = `${sign}${offset.toFixed(2)} Years`;
-      document.getElementById('phvEstAge').textContent = `Est. PHV Age: ${estPhvAge.toFixed(1)} yrs`;
-
-      const card = document.getElementById('phvResultCard');
-      const badge = document.getElementById('phvBandBadge');
-      const guide = document.getElementById('phvGuidance');
-
-      if (offset < -0.5) {
-        card.className = 'rounded-xl p-3 border-2 bg-sky-50 border-sky-400 space-y-1.5';
-        badge.className = 'inline-block px-2.5 py-1 rounded-full text-xs font-extrabold bg-sky-600 text-white';
-        badge.textContent = 'PRE-PHV (FOUNDATION)';
-        guide.innerHTML = '<strong>LTAD Focus:</strong> High neural plasticity window. Prioritize multi-directional coordination, agility, technical mastery, and joyful small-sided games.';
-      } else if (offset <= 0.5) {
-        card.className = 'rounded-xl p-3 border-2 bg-amber-50 border-amber-400 space-y-1.5';
-        badge.className = 'inline-block px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-500 text-white';
-        badge.textContent = 'CIRCA-PHV (GROWTH SPURT ALERT)';
-        guide.innerHTML = '<strong>Load Alert:</strong> Peak growth velocity phase. Elevated risk of Osgood-Schlatter / Sever’s &amp; temporary coordination dips ("adolescent awkwardness"). Cap high-speed sprint volume and avoid repetitive plyometrics.';
-      } else {
-        card.className = 'rounded-xl p-3 border-2 bg-emerald-50 border-emerald-400 space-y-1.5';
-        badge.className = 'inline-block px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-600 text-white';
-        badge.textContent = 'POST-PHV (CONSOLIDATION)';
-        guide.innerHTML = '<strong>LTAD Focus:</strong> Hormonal maturation supports progressive strength, aerobic power, and high-intensity tactical transition conditioning.';
-      }
-    }
-
-    // =========================================================================
-    // TAB 4: TRAINING-TO-MATCH TRANSFER BRIDGE
-    // =========================================================================
-    function saveBridge() {
-      state.bridge.topic = document.getElementById('bridgeTopic').value;
-      state.bridge.constraint = document.getElementById('bridgeConstraint').value;
-      state.bridge.success = document.getElementById('bridgeSuccess').value;
-      state.bridge.breakdown = document.getElementById('bridgeBreakdown').value;
-      saveState();
-    }
-
-    function setBridgeRating(idx, val) {
-      state.bridge.behaviors[idx].rating = val;
-      saveState();
-      renderBridge();
-    }
-
-    function renderBridge() {
-      document.getElementById('bridgeTopic').value = state.bridge.topic || '';
-      document.getElementById('bridgeConstraint').value = state.bridge.constraint || '';
-      document.getElementById('bridgeSuccess').value = state.bridge.success || '';
-      document.getElementById('bridgeBreakdown').value = state.bridge.breakdown || '';
-
-      const list = document.getElementById('bridgeBehaviorsList');
-      list.innerHTML = state.bridge.behaviors.map((b, idx) => {
-        const pills = [1, 2, 3, 4, 5].map(num => {
-          const active = b.rating === num;
-          return `<button onclick="setBridgeRating(${idx}, ${num})" class="touch-btn w-9 h-9 rounded-lg font-extrabold text-xs border ${active ? 'bg-mifc-maroon text-mifc-gold border-mifc-maroon shadow-xs' : 'bg-slate-50 text-slate-600 border-slate-300'}">${num}</button>`;
-        }).join('');
-
-        return `
-          <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
-            <div>
-              <div class="text-xs font-bold text-slate-900">${escapeHtml(b.title)}</div>
-              <div class="text-[11px] text-slate-500">${escapeHtml(b.cue)}</div>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-[10px] font-bold uppercase text-slate-400">Transfer Score:</span>
-              <div class="flex items-center gap-1.5">${pills}</div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // =========================================================================
-    // TAB 5: COACH SELF-APPRAISAL, GIBBS CYCLE & 12-WEEK HABIT TRACKER
-    // =========================================================================
-    const APPRAISAL_DIMENSIONS = [
-      { key: 'composure', title: 'Sideline Composure (Swan Analogy)', desc: 'Calm demeanor during referee errors & goals conceded' },
-      { key: 'verbal', title: 'Verbal Restraint (Anti-Joystick)', desc: 'Guided via questions & wait-time instead of play-by-play' },
-      { key: 'halftime', title: 'Half-Time Clarity (Rule of 2 or 3)', desc: '3m silent recovery; max 2 tactical board adjustments' },
-      { key: 'fairplay', title: 'Equal Opportunity (50% Mandate)', desc: 'Prioritized balanced minutes & positional rotation' },
-      { key: 'safety', title: 'Psychological Safety & Tone', desc: 'Public collective praise; quiet 1-on-1 individual critique' }
-    ];
-
-    const GIBBS_STAGES = [
-      { key: 's1', num: '01', name: 'Description', q: 'What happened? (Facts, pitch zone, minute — zero emotion)' },
-      { key: 's2', num: '02', name: 'Feelings', q: 'What were you feeling? Did touchline tension affect players?' },
-      { key: 's3', num: '03', name: 'Evaluation', q: 'What worked vs. what missed the mark?' },
-      { key: 's4', num: '04', name: 'Analysis', q: 'Why did it happen? (Cognitive load, constraints, fatigue)' },
-      { key: 's5', num: '05', name: 'Conclusion', q: 'What alternative intervention or constraint could you use?' },
-      { key: 's6', num: '06', name: 'Action Plan (Single Tuesday Habit Shift)', q: 'Commit to 1 concrete behavioral change for next session:', highlight: true }
-    ];
-
-    const HABIT_ROWS = [
-      { title: 'Feedback Restraint', sub: 'Max 2 group stops per 20-min SSG' },
-      { title: 'Questioning Quality', sub: 'Script Bloom higher-order prompts pre-session' },
-      { title: 'Sideline Demeanor', sub: 'Zero reactive gestures toward officials/players' },
-      { title: 'Wait-Time Discipline', sub: 'Hold 8–10 sec silent window after asking question' },
-      { title: 'Constraints over Voice', sub: 'Modify space/rules before stopping play to lecture' },
-      { title: 'Holistic Connection', sub: '2-min off-ball SDT check-ins with 3 players/session' }
-    ];
-
-    function setAppraisalScore(key, val) {
-      state.reflect.appraisal[key] = val;
-      saveState();
-      renderReflect();
-    }
-
-    function saveGibbs(key, val) {
-      state.reflect.gibbs[key] = val;
-      saveState();
-    }
-
-    function toggleHabit(rIdx, wIdx) {
-      const k = `${rIdx}_${wIdx}`;
-      state.reflect.habits[k] = !state.reflect.habits[k];
-      saveState();
-      renderReflect();
-    }
-
-    function renderReflect() {
-      // 1. Appraisal Rubric
-      const scores = Object.values(state.reflect.appraisal);
-      const avg = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
-      document.getElementById('appraisalAvgBadge').textContent = `Avg: ${avg} / 5`;
-
-      document.getElementById('appraisalList').innerHTML = APPRAISAL_DIMENSIONS.map(d => {
-        const cur = state.reflect.appraisal[d.key] || 0;
-        const btns = [1, 2, 3, 4, 5].map(n => `
-          <button onclick="setAppraisalScore('${d.key}', ${n})" class="touch-btn w-8 h-8 rounded-lg text-xs font-extrabold border ${cur === n ? 'bg-mifc-maroon text-mifc-gold border-mifc-maroon' : 'bg-slate-50 text-slate-600 border-slate-300'}">${n}</button>
-        `).join('');
-        return `
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200">
-            <div class="min-w-0">
-              <div class="text-xs font-bold text-slate-900">${d.title}</div>
-              <div class="text-[11px] text-slate-500">${d.desc}</div>
-            </div>
-            <div class="flex items-center gap-1 flex-shrink-0">${btns}</div>
-          </div>
-        `;
-      }).join('');
-
-      // 2. Gibbs Cycle Accordion
-      document.getElementById('gibbsStagesList').innerHTML = GIBBS_STAGES.map(st => {
-        const val = state.reflect.gibbs[st.key] || '';
-        const hasText = val.trim().length > 0;
-        return `
-          <div class="p-2.5 ${st.highlight ? 'bg-emerald-50/60' : ''}">
-            <button onclick="toggleAccordion('gibbs-box-${st.key}')" class="w-full text-left flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2 min-w-0">
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-extrabold ${st.highlight ? 'bg-emerald-700 text-white' : 'bg-slate-800 text-mifc-gold'}">${st.num}</span>
-                <span class="text-xs font-bold ${st.highlight ? 'text-emerald-950' : 'text-slate-900'} truncate">${st.name}</span>
-              </div>
-              <span class="text-[11px] font-bold ${hasText ? 'text-emerald-700' : 'text-slate-400'}">${hasText ? '✓ Logged' : 'Edit'}</span>
-            </button>
-            <div id="gibbs-box-${st.key}" class="${st.highlight || hasText ? '' : 'hidden'} mt-2 space-y-1">
-              <p class="text-[11px] text-slate-600 font-medium">${st.q}</p>
-              <textarea rows="2" oninput="saveGibbs('${st.key}', this.value)" placeholder="Write brief bullet points..." class="w-full p-2 rounded-lg border border-slate-300 text-sm bg-white outline-none">${escapeHtml(val)}</textarea>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      // 3. 12-Week Habit Tracker Grid
-      let checkedCount = 0;
-      const totalCells = HABIT_ROWS.length * 12;
-
-      document.getElementById('habitGridContainer').innerHTML = HABIT_ROWS.map((h, rIdx) => {
-        const weekBoxes = Array.from({ length: 12 }, (_, wIdx) => {
-          const isChecked = !!state.reflect.habits[`${rIdx}_${wIdx}`];
-          if (isChecked) checkedCount++;
-          return `
-            <button onclick="toggleHabit(${rIdx}, ${wIdx})" class="touch-btn h-7 rounded text-[10px] font-extrabold border ${isChecked ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-slate-50 text-slate-500 border-slate-300'}">
-              W${wIdx + 1}
-            </button>
-          `;
-        }).join('');
-
-        return `
-          <div class="p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 space-y-1.5">
-            <div>
-              <div class="text-xs font-bold text-slate-900">${h.title}</div>
-              <div class="text-[11px] text-slate-500">${h.sub}</div>
-            </div>
-            <div class="grid grid-cols-6 sm:grid-cols-12 gap-1">${weekBoxes}</div>
-          </div>
-        `;
-      }).join('');
-
-      const pct = Math.round((checkedCount / totalCells) * 100);
-      document.getElementById('habitPctDisplay').textContent = `${pct}% (${checkedCount}/${totalCells})`;
-      document.getElementById('habitProgressBar').style.width = `${pct}%`;
-    }
-
-    // =========================================================================
-    // EXPORT SUMMARY & CSV DOWNLOAD
-    // =========================================================================
-    function generateSummaryText() {
-      const m = state.match;
-      const t = m.tallies;
-      const targetMins = (m.durationMins * 0.5).toFixed(1);
-
-      const rosterLines = state.roster.map(p => {
-        const mins = (p.seconds / 60).toFixed(1);
-        const roles = Object.keys(p.pos).filter(k => p.pos[k]).join('/') || 'None';
-        return `- ${p.name}: ${mins} mins (${parseFloat(mins) >= parseFloat(targetMins) ? 'OK' : 'UNDER 50%'}) | Roles: ${roles}`;
-      }).join('\n');
-
-      const adjLines = m.adjustments.length
-        ? m.adjustments.map(a => `- [${a.period} ${a.minute}] ${a.text}`).join('\n')
-        : '- None logged';
-
-      const scores = Object.values(state.reflect.appraisal);
-      const appAvg = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
-
-      return [
-        `MERCER ISLAND FC — MATCHDAY & REFLECTION REPORT`,
-        `Fixture: ${m.opponent || 'N/A'} | Period: ${m.period} | Clock: ${formatClock(m.elapsedSeconds)}`,
-        `====================================================`,
-        `1. LIVE MATCH CODING (4 MOMENTS)`,
-        `- Progressive Passes: ${t.progPasses} | Final Third Entries: ${t.finalThird} | Shots on Target: ${t.shotsOnTarget}`,
-        `- Press Regains: ${t.pressRegains} | Tackles/Int: ${t.tacklesInt} | Shots Conceded: ${t.shotsConceded}`,
-        `- Quick Counters (D->A): ${t.counterAttacks} | Counter-Press (A->D): ${t.counterPress}`,
-        ``,
-        `2. IN-GAME TACTICAL ADJUSTMENTS`,
-        adjLines,
-        ``,
-        `3. PLAYER MINUTES & 50% FAIR PLAY MANDATE (Target: ${targetMins}m of ${m.durationMins}m)`,
-        rosterLines,
-        ``,
-        `4. TRAINING-TO-MATCH TRANSFER BRIDGE`,
-        `- Midweek Theme: ${state.bridge.topic || 'N/A'}`,
-        `- Successful Transfer: ${state.bridge.success || 'N/A'}`,
-        `- Tuesday Constraint Priority: ${state.bridge.breakdown || 'N/A'}`,
-        ``,
-        `5. COACH SELF-APPRAISAL & GIBBS ACTION PLAN`,
-        `- Self-Appraisal Average: ${appAvg} / 5.0`,
-        `- Gibbs Stage 6 (Next Tuesday Habit Shift): ${state.reflect.gibbs.s6 || 'N/A'}`
-      ].join('\n');
-    }
-
-    function openExportModal() {
-      document.getElementById('exportPreviewText').value = generateSummaryText();
-      document.getElementById('exportModal').classList.remove('hidden');
-    }
-
-    function closeExportModal() {
-      document.getElementById('exportModal').classList.add('hidden');
-    }
-
-    function copySummaryToClipboard() {
-      const textarea = document.getElementById('exportPreviewText');
-      textarea.select();
-      textarea.setSelectionRange(0, 99999);
-      try {
-        document.execCommand('copy');
-        showToast('Summary copied to clipboard!');
-      } catch (e) {
-        showToast('Unable to copy automatically');
-      }
-    }
-
-    function downloadCSV() {
-      const rows = [
-        ['Player Name', 'Minutes Played', '50% Quota Met', 'GK', 'DEF', 'MID', 'ATT']
-      ];
-      const targetMins = state.match.durationMins * 0.5;
-      state.roster.forEach(p => {
-        const mins = (p.seconds / 60).toFixed(1);
-        rows.push([
-          `"${p.name.replace(/"/g, '""')}"`,
-          mins,
-          parseFloat(mins) >= targetMins ? 'YES' : 'NO',
-          p.pos.GK ? '1' : '0',
-          p.pos.DEF ? '1' : '0',
-          p.pos.MID ? '1' : '0',
-          p.pos.ATT ? '1' : '0'
-        ]);
-      });
-
-      const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(r => r.join(',')).join('\n');
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `MIFC_Match_Rotation_${new Date().toISOString().slice(0, 10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      showToast('CSV downloaded');
-    }
-
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-
-    // =========================================================================
-    // INITIALIZE APP ON LOAD
-    // =========================================================================
-    window.onload = function () {
-      // Restore match inputs
-      document.getElementById('matchOpponent').value = state.match.opponent || '';
-      document.getElementById('matchPeriod').value = state.match.period || 'H1';
-      document.getElementById('clockDisplay').textContent = formatClock(state.match.elapsedSeconds || 0);
-      document.getElementById('matchDurationInput').value = state.match.durationMins || 60;
-
-      // Restore calculator inputs
-      document.getElementById('pitchLength').value = state.calculators.pitchLength;
-      document.getElementById('pitchWidth').value = state.calculators.pitchWidth;
-      document.getElementById('pitchPlayers').value = state.calculators.pitchPlayers;
-      document.getElementById('phvSex').value = state.calculators.phvSex;
-      document.getElementById('phvAge').value = state.calculators.phvAge;
-      document.getElementById('phvHeight').value = state.calculators.phvHeight;
-      document.getElementById('phvSitting').value = state.calculators.phvSitting;
-      document.getElementById('phvWeight').value = state.calculators.phvWeight;
-
-      // Render all modules
-      renderTallies();
-      renderDecisionTree();
-      renderAdjustments();
-      renderRoster();
-      calcPitch();
-      calcPHV();
-      renderBridge();
-      renderReflect();
-
-      // Restore last active tab
-      switchTab(state.activeTab || 'matchday');
-    };
-  </script>
+    row.appendChild(btn); box.appendChild(row);
+  });
+}
+function downloadSessionCard() {
+  const link = document.createElement('a');
+  link.download = 'MIFC_' + document.getElementById('sessionTitle').value.replace(/[^a-z0-9]/gi,'_') + '.png';
+  link.href = canvas.toDataURL('image/png'); link.click(); showToast('Saved Pitch Diagram (.PNG)');
+}
+async function shareCurrentSession() {
+  const title = document.getElementById('sessionTitle').value;
+  const text = `⚽ MIFC Session: ${title}\n📐 ${document.getElementById('sessionDims').value}\n🎯 ${document.getElementById('sessionObjective').value}\n\n${document.getElementById('sessionRules').value}`;
+  if (navigator.share) { try { await navigator.share({ title: 'MIFC Session', text }); return; } catch(e) {} }
+  navigator.clipboard.writeText(text); showToast('Session plan copied to clipboard!');
+}
+
+window.onload = () => { populatePresets(); runPitchCalc(); runPHV(); loadPreset('pr1'); renderHubSaved(); };
+</script>
 </body>
 </html>
