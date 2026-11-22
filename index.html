@@ -399,7 +399,11 @@
     <div class="form-group"><label>Ball Rolling Time (Target: 70%+): <b id="rub1v">4</b>/5</label><input type="range" id="rub1" min="1" max="5" value="4" oninput="document.getElementById('rub1v').innerText=this.value"></div>
     <div class="form-group"><label>Player Autonomy & GBA Problem-Solving: <b id="rub2v">4</b>/5</label><input type="range" id="rub2" min="1" max="5" value="4" oninput="document.getElementById('rub2v').innerText=this.value"></div>
     <div class="form-group"><label>Concise Coaching Interventions: <b id="rub3v">4</b>/5</label><input type="range" id="rub3" min="1" max="5" value="4" oninput="document.getElementById('rub3v').innerText=this.value"></div>
-    <button class="btn btn-maroon" style="width:100%; margin-top:6px;" onclick="copyMatchReport()">📲 Copy Full Match & Analysis Report</button>
+    <div class="grid-2" style="margin-top:8px;">
+  <button class="btn btn-maroon" onclick="shareMatchCard()">📲 Share Match Card</button>
+  <button class="btn btn-gold" onclick="downloadMatchCard()">🖼️ Save Card (.PNG)</button>
+</div>
+<button class="btn btn-outline btn-sm" style="width:100%; margin-top:6px;" onclick="copyMatchReport()">📋 Copy Text Only</button>
   </div>
 </section>
 
@@ -513,6 +517,161 @@ function incKPI(key) { kpis[key]++; document.getElementById('kpi-' + key).innerT
 function resetKPIs() { Object.keys(kpis).forEach(k => { kpis[k] = 0; document.getElementById('kpi-' + k).innerText = '0'; }); showToast('Counters reset'); }
 
 function copyMatchReport() {
+ function wrapMatchText(c, text, x, y, maxW, lineH) {
+  const lines = (text || '—').split('\n');
+  let curY = y;
+  lines.forEach(p => {
+    let line = '';
+    p.split(' ').forEach(w => {
+      const test = line + w + ' ';
+      if (c.measureText(test).width > maxW && line) {
+        c.fillText(line.trim(), x, curY);
+        line = w + ' ';
+        curY += lineH;
+      } else {
+        line = test;
+      }
+    });
+    if (line.trim()) { c.fillText(line.trim(), x, curY); curY += lineH + 2; }
+  });
+  return curY;
+}
+
+function buildMatchCardDataURL() {
+  const mc = document.createElement('canvas');
+  mc.width = 800;
+  mc.height = 1040;
+  const c = mc.getContext('2d');
+
+  // Background
+  c.fillStyle = '#F4F6F8';
+  c.fillRect(0, 0, mc.width, mc.height);
+
+  // Header Banner
+  c.fillStyle = '#7A1C24';
+  c.fillRect(0, 0, mc.width, 108);
+  c.fillStyle = '#D4AF37';
+  c.fillRect(0, 108, mc.width, 6);
+
+  const opp = document.getElementById('matchOpp').value || 'Matchday Report';
+  const focus = document.getElementById('matchFocus').value || 'Game Model Review';
+  const clock = document.getElementById('matchClock').innerText;
+
+  c.fillStyle = '#FFFFFF';
+  c.font = 'bold 26px sans-serif';
+  c.fillText('MERCER ISLAND FC — MATCH ANALYSIS', 30, 46);
+  c.font = '16px sans-serif';
+  c.fillStyle = '#F8F9FA';
+  c.fillText(`${opp}   |   Focus: ${focus}   |   Clock: ${clock}`, 30, 82);
+
+  // 6 KPI Cards (3x2 Grid)
+  const kpiItems = [
+    ['Line-Breaking Passes', kpis.lbp],
+    ['Counter-Press Wins (<6s)', kpis.cp],
+    ['Final Third Entries', kpis.f3],
+    ['Shots on Target', kpis.shots],
+    ['Build-Up Turnovers', kpis.turn],
+    ['Fast Break Chances', kpis.trans]
+  ];
+  kpiItems.forEach((item, idx) => {
+    const col = idx % 3, row = Math.floor(idx / 3);
+    const x = 30 + col * 252, y = 136 + row * 112;
+    c.fillStyle = '#FFFFFF';
+    c.fillRect(x, y, 236, 96);
+    c.strokeStyle = '#DCE0E5';
+    c.lineWidth = 1.5;
+    c.strokeRect(x, y, 236, 96);
+    c.fillStyle = '#7A1C24';
+    c.fillRect(x, y, 236, 5);
+
+    c.fillStyle = '#7A1C24';
+    c.font = 'bold 34px sans-serif';
+    c.textAlign = 'center';
+    c.fillText(String(item[1]), x + 118, y + 52);
+    c.fillStyle = '#444444';
+    c.font = 'bold 13px sans-serif';
+    c.fillText(item[0], x + 118, y + 80);
+  });
+  c.textAlign = 'left';
+
+  // Half-Time Adjustments Box
+  c.fillStyle = '#FFFFFF';
+  c.fillRect(30, 380, 740, 210);
+  c.strokeStyle = '#DCE0E5';
+  c.strokeRect(30, 380, 740, 210);
+  c.fillStyle = '#7A1C24';
+  c.fillRect(30, 380, 6, 210);
+  c.font = 'bold 15px sans-serif';
+  c.fillText('HALF-TIME ADJUSTMENTS', 50, 410);
+  c.fillStyle = '#222222';
+  c.font = '15px sans-serif';
+  wrapMatchText(c, document.getElementById('matchHT').value, 50, 438, 700, 22);
+
+  // Post-Match Reflection Box
+  c.fillStyle = '#FFFFFF';
+  c.fillRect(30, 610, 740, 240);
+  c.strokeStyle = '#DCE0E5';
+  c.strokeRect(30, 610, 740, 240);
+  c.fillStyle = '#7A1C24';
+  c.fillRect(30, 610, 6, 240);
+  c.font = 'bold 15px sans-serif';
+  c.fillText('POST-MATCH REFLECTION & NEXT TRAINING FOCUS', 50, 640);
+  c.fillStyle = '#222222';
+  c.font = '15px sans-serif';
+  wrapMatchText(c, document.getElementById('matchPost').value, 50, 668, 700, 22);
+
+  // Coach Rubric Bar
+  const r1 = document.getElementById('rub1').value;
+  const r2 = document.getElementById('rub2').value;
+  const r3 = document.getElementById('rub3').value;
+  c.fillStyle = '#FFF8E7';
+  c.fillRect(30, 875, 740, 105);
+  c.strokeStyle = '#D4AF37';
+  c.lineWidth = 2;
+  c.strokeRect(30, 875, 740, 105);
+  c.fillStyle = '#7A1C24';
+  c.font = 'bold 15px sans-serif';
+  c.fillText('COACH SELF-REFLECTION RUBRIC', 50, 905);
+  c.fillStyle = '#1E2227';
+  c.font = 'bold 17px sans-serif';
+  c.fillText(`Ball Rolling: ${r1}/5      |      Player Autonomy (GBA): ${r2}/5      |      Coaching Clarity: ${r3}/5`, 50, 945);
+
+  // Footer
+  c.fillStyle = '#777777';
+  c.font = '12px sans-serif';
+  c.fillText('Mercer Island FC • Coaching & Sports Science Hub', 30, 1015);
+
+  return mc.toDataURL('image/png');
+}
+
+function downloadMatchCard() {
+  const url = buildMatchCardDataURL();
+  const opp = (document.getElementById('matchOpp').value || 'Match').replace(/[^a-z0-9]/gi, '_');
+  const link = document.createElement('a');
+  link.download = 'MIFC_MatchCard_' + opp + '.png';
+  link.href = url;
+  link.click();
+  showToast('Saved Visual Match Card (.PNG)!');
+}
+
+async function shareMatchCard() {
+  const url = buildMatchCardDataURL();
+  const opp = document.getElementById('matchOpp').value || 'Matchday Report';
+  const summary = `📊 MIFC Match Analysis — ${opp} (${document.getElementById('matchClock').innerText})`;
+  try {
+    const blob = await (await fetch(url)).blob();
+    const file = new File([blob], 'MIFC_MatchCard.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ title: 'MIFC Match Analysis', text: summary, files: [file] });
+      showToast('Shared Match Card!');
+      return;
+    } else if (navigator.share) {
+      await navigator.share({ title: 'MIFC Match Analysis', text: summary });
+      return;
+    }
+  } catch (e) {}
+  downloadMatchCard();
+} 
   const txt = `📊 MERCER ISLAND FC MATCH REPORT\nOpponent: ${document.getElementById('matchOpp').value || 'N/A'}\nFocus: ${document.getElementById('matchFocus').value || 'N/A'}\nClock: ${document.getElementById('matchClock').innerText}\n\nLIVE KPIs:\n• Line-Breaking Passes: ${kpis.lbp}\n• Counter-Press Wins (<6s): ${kpis.cp}\n• Final Third Entries: ${kpis.f3}\n• Shots on Target: ${kpis.shots}\n• Build-Up Turnovers: ${kpis.turn}\n• Fast Break Chances: ${kpis.trans}\n\nHALF-TIME NOTES:\n${document.getElementById('matchHT').value}\n\nPOST-MATCH REFLECTION:\n${document.getElementById('matchPost').value}\n\nRUBRIC: Ball Rolling ${document.getElementById('rub1').value}/5 | Autonomy ${document.getElementById('rub2').value}/5 | Clarity ${document.getElementById('rub3').value}/5`;
   navigator.clipboard.writeText(txt); showToast('Full Match Report copied!');
 }
