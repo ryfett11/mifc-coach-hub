@@ -98,7 +98,7 @@
 
   /* Designer Controls & Pitch */
   .designer-controls { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; }
-  .designer-controls select, .designer-controls button { flex-shrink: 0; font-size: 12px; padding: 7px 10px; border-radius: 6px; border: 1px solid #ccc; }
+  .designer-controls select, .designer-controls button, .designer-controls input { flex-shrink: 0; font-size: 12px; padding: 7px 10px; border-radius: 6px; border: 1px solid #ccc; background: white; }
   .pitch-wrapper { background: #1e2227; border-radius: 8px; padding: 6px; margin-bottom: 10px; display: flex; justify-content: center; }
   canvas { width: 100%; height: auto; border-radius: 4px; touch-action: none; display: block; max-width: 840px; }
   .tool-strip { display: flex; gap: 6px; overflow-x: auto; padding: 5px 2px; margin-bottom: 8px; scrollbar-width: none; }
@@ -109,7 +109,7 @@
   }
   .tool-pill.active { background: var(--mifc-maroon); color: white; border-color: var(--mifc-maroon); }
 
-  /* Result Banners (Pitch Calc & PHV) */
+  /* Result Banners */
   .result-banner {
     background: linear-gradient(135deg, var(--mifc-dark), var(--mifc-maroon));
     color: white; border-radius: 8px; padding: 14px; text-align: center; margin-top: 10px;
@@ -170,14 +170,14 @@
 <section id="view-hub" class="app-view active">
   <div class="card" style="background:linear-gradient(135deg, #4A0E13, #7A1C24); color:white; border:none;">
     <h2 style="color:white; margin-bottom:4px;">Mercer Island FC Coach App</h2>
-    <p style="margin:0; font-size:13px; opacity:0.9;">All club coaching, pitch sizing, PHV maturation, and matchday analysis tools in one place. Tap <b>Share → Add to Home Screen</b> to install.</p>
+    <p style="margin:0; font-size:13px; opacity:0.9;">150 built-in drills, pitch sizing, PHV maturation, and matchday analysis in one app. On Android Chrome, tap <b>⋮ → Add to Home screen</b> to install.</p>
   </div>
 
   <div class="hub-grid">
     <div class="hub-tile" onclick="switchView('designer')">
       <div class="tile-icon">📋</div>
       <b>Session Designer</b>
-      <span>Drag-and-drop pitch & drill library</span>
+      <span>150 drills & touch tactical pitch</span>
     </div>
     <div class="hub-tile" onclick="switchView('calc')">
       <div class="tile-icon">📏</div>
@@ -206,17 +206,18 @@
 <section id="view-designer" class="app-view">
   <div class="designer-controls">
     <select id="catFilter" onchange="populatePresets()">
-      <option value="ALL">All Categories</option>
-      <option value="PASSING">Passing & Technical</option>
-      <option value="RONDOS">Rondos & Possession</option>
-      <option value="BUILDUP">Build-Up & Formations</option>
-      <option value="ATTACKING">Attacking & Combos</option>
-      <option value="PRESSING">Pressing & Counter-Press</option>
-      <option value="DEFENDING">Defending & Shape</option>
-      <option value="TRANSITION">Transitions & SSGs</option>
-      <option value="FITNESS">Fitness & Set Pieces</option>
+      <option value="ALL">All Categories (150)</option>
+      <option value="PASSING">Passing & Technical (22)</option>
+      <option value="RONDOS">Rondos & Possession (19)</option>
+      <option value="BUILDUP">Build-Up & Formations (20)</option>
+      <option value="ATTACKING">Attacking & Combos (23)</option>
+      <option value="PRESSING">Pressing & Counter-Press (16)</option>
+      <option value="DEFENDING">Defending & Shape (14)</option>
+      <option value="TRANSITION">Transitions & SSGs (22)</option>
+      <option value="FITNESS">Fitness & Set Pieces (14)</option>
     </select>
-    <select id="presetSelect" onchange="loadPreset(this.value)" style="max-width:210px; font-weight:600;"></select>
+    <input type="text" id="searchDrill" placeholder="🔍 Search 150 drills..." oninput="populatePresets()" style="width:140px;">
+    <select id="presetSelect" onchange="loadPreset(this.value)" style="max-width:220px; font-weight:600;"></select>
     <select id="pitchType" onchange="state.pitch=this.value; draw();">
       <option value="full">Full Pitch</option>
       <option value="pep">Half-Spaces Grid</option>
@@ -263,6 +264,7 @@
       <div class="form-group"><label>Tactical Objective</label><input type="text" id="sessionObjective" value=""></div>
       <div class="form-group"><label>Organization & Rules</label><textarea id="sessionRules"></textarea></div>
       <div class="form-group"><label>Key Coaching Points</label><textarea id="sessionPoints"></textarea></div>
+      <div class="form-group"><label>Progressions</label><textarea id="sessionProg" style="min-height:48px;"></textarea></div>
       <div class="grid-2">
         <button class="btn btn-maroon" onclick="saveSessionLocal()">⭐ Save to Phone</button>
         <button class="btn btn-gold" onclick="downloadSessionCard()">📱 Save PNG</button>
@@ -412,6 +414,9 @@
 
 <div id="toast">Saved!</div>
 
+<!-- EXTERNAL 150-DRILL LIBRARY -->
+<script src="drills.js"></script>
+
 <script>
 // --- NAVIGATION ---
 function switchView(name) {
@@ -445,7 +450,7 @@ function sendCalcToDesigner() {
   switchView('designer'); showToast('Applied ' + dims + ' to Designer!');
 }
 
-// --- 2. PHV MATURATION CALCULATOR (Mirwald et al., 2002) ---
+// --- 2. PHV MATURATION CALCULATOR ---
 function runPHV() {
   const sex = document.getElementById('phvSex').value;
   const age = parseFloat(document.getElementById('phvAge').value) || 13.5;
@@ -471,7 +476,7 @@ function runPHV() {
     guide.innerHTML = '<b>MIFC Sports Science Guidance:</b> Focus on fundamental movement skills, agility, coordination, ball mastery, and technical enjoyment. Avoid heavy external resistance loads.';
   } else if (offset <= 1.0) {
     badge.className = 'phv-badge phv-circa'; badge.innerText = 'CIRCA-PHV (PEAK GROWTH SPURT)';
-    guide.innerHTML = '<b>MIFC Sports Science Guidance:</b> Elevated risk of growth-related injuries (Osgood-Schlatter, Sever\'s) and temporary coordination dip ("adolescent awkwardness"). Prioritize neuromuscular ACL prevention, mobility, and monitor weekly load spikes closely.';
+    guide.innerHTML = '<b>MIFC Sports Science Guidance:</b> Elevated risk of growth-related injuries (Osgood-Schlatter, Sever\'s) and temporary coordination dip. Prioritize neuromuscular ACL prevention, mobility, and monitor weekly load spikes.';
   } else {
     badge.className = 'phv-badge phv-post'; badge.innerText = 'POST-PHV (MATURING / MATURE)';
     guide.innerHTML = '<b>MIFC Sports Science Guidance:</b> High trainability window for structured strength, eccentric hamstring work (Nordics), power, and higher-intensity tactical conditioning.';
@@ -522,7 +527,15 @@ function saveHistory() { historyStack.push(JSON.stringify({ tokens: state.tokens
 function undoAction() { if (!historyStack.length) return showToast('Nothing to undo'); const p = JSON.parse(historyStack.pop()); state.tokens = p.tokens; state.lines = p.lines; state.zones = p.zones; draw(); }
 function setMode(m) { state.mode = m; document.querySelectorAll('.tool-pill').forEach(p => p.classList.remove('active')); const el = document.getElementById('mode-' + m); if (el) el.classList.add('active'); }
 function clearPitch() { saveHistory(); state.tokens = []; state.lines = []; state.zones = []; draw(); showToast('Pitch cleared'); }
-function startBlank() { clearPitch(); document.getElementById('sessionTitle').value = 'New MIFC Session'; document.getElementById('sessionObjective').value = ''; document.getElementById('sessionRules').value = '1. \n2. '; document.getElementById('sessionPoints').value = '• \n• '; draw(); }
+function startBlank() {
+  clearPitch();
+  document.getElementById('sessionTitle').value = 'New MIFC Session';
+  document.getElementById('sessionObjective').value = '';
+  document.getElementById('sessionRules').value = '1. \n2. ';
+  document.getElementById('sessionPoints').value = '• \n• ';
+  document.getElementById('sessionProg').value = '• ';
+  draw();
+}
 function addToken(type, color, lbl) { saveHistory(); setMode('move'); if (type === 'player' && (lbl === 'M' || lbl === 'B')) lbl += (playerCounter++); state.tokens.push({ type, color, label: lbl, x: 420 + (Math.random()*60-30), y: 270 + (Math.random()*60-30) }); draw(); }
 
 function drawPitch() {
@@ -610,52 +623,48 @@ function pUp() {
 canvas.addEventListener('mousedown', pDown); canvas.addEventListener('mousemove', pMove); canvas.addEventListener('mouseup', pUp);
 canvas.addEventListener('touchstart', pDown, {passive:false}); canvas.addEventListener('touchmove', pMove, {passive:false}); canvas.addEventListener('touchend', pUp);
 
-// --- DRILL LIBRARY (Paste your full 100-session RAW_LIBRARY from v5.0 here) ---
-const RAW_LIBRARY = [
-  {id:'p1', cat:'PASSING', pitch:'ssg', title:'Passing: Double Triangle Y-Drill', age:'U11-U18', dims:'25x20 yds', obj:'Rapid 1-2 lay-offs and angled support runs.', rules:'1. A plays 1-2 with B -> A passes diagonally to C -> C lays off to B -> B passes to D.', pts:'• Arrive on the half-turn.\n• Firm ground passes.'},
-  {id:'r1', cat:'RONDOS', pitch:'ssg', title:'Rondo: 4v2 (+1 Central Pivot)', age:'U11-U18', dims:'10x10 yds', obj:'Use sole control to invite pressure and play through the central pivot.', rules:'1. 4 outside + 1 central Floater vs 2 inside defenders.\n2. Last 2 players to touch the ball swap in on turnover.', pts:'• Stop the ball with the sole to freeze defenders.'},
-  {id:'b1', cat:'BUILDUP', pitch:'full', title:'Build-Up: 2-4-4 Bait the Press', age:'U13-U18', dims:'Full/Half Pitch', obj:'Invite pressure with sole control and break lines via a 3rd-man bounce.', rules:'1. 2 CBs split, 2 FBs level with 2 DMs, 4 high attackers pin the back 4.\n2. Play past the press into AM/F to bounce 1-touch to the free DM.', pts:'• Do not pass until the opponent commits.'},
-  {id:'a1', cat:'ATTACKING', pitch:'pep', title:'Attacking: Half-Space Receive & Cut-Back', age:'U12-U18', dims:'Half Pitch', obj:'Receive in the Half-Space and slide the Winger in behind for a low cut-back.', rules:'1. DM plays into AM in Half-Space -> slides high Winger in behind -> low cut-back for 3 box runners.', pts:'• Wingers stay glued to touchline to keep Half-Spaces open.'},
-  {id:'pr1', cat:'PRESSING', pitch:'ssg', title:'Pressing: 5v2 Win Within 6 Passes', age:'U10-U18', dims:'10x10 yds', obj:'High-intensity counter-pressing to win the ball within 6 passes.', rules:'1. 5 outside (1-touch) vs 2 inside defenders.\n2. Win within 6 passes = BOTH defenders escape!', pts:'• Nearest defender presses 100%; 2nd defender cuts the split pass.'},
-  {id:'d1', cat:'DEFENDING', pitch:'half', title:'Defending: Back 4 Compact Unit Arc', age:'U12-U18', dims:'Half Pitch', obj:'Compress centrally on passes to the Striker; shift into a curved Defensive Arc when wide.', rules:'1. Fullback steps to press wide Winger; other 3 defenders tuck across in a curved arc.', pts:'• Keep 10-12 yd distances; protect depth.'},
-  {id:'t1', cat:'TRANSITION', pitch:'full', title:'Transition: 5-5-5 Rule Counter-Attack', age:'U13-U18', dims:'Full Pitch (3 Zones)', obj:'Win the ball in the middle zone and launch a driving counter-attack.', rules:'1. Enter attacking zone within 5 seconds.\n2. Max 5 passes.\n3. Min 5 players sprint into attacking zone before scoring!', pts:'• Explosive driving runs past the ball carrier.'},
-  {id:'f1', cat:'FITNESS', pitch:'half', title:'Set Piece: Short Corner Set & Spin', age:'U11-U18', dims:'Attacking Half', obj:'Draw 2 defenders to the corner flag and spin behind them into the box.', rules:'1. No. 8 sprints short -> 1-touch set back to taker -> spins around 2 defenders for chipped return.', pts:'• Box runners hold runs until No. 8 spins.'}
-];
-
+// --- LINKED 150-DRILL LIBRARY LOADER (from drills.js) ---
 function populatePresets() {
-  const cat = document.getElementById('catFilter').value;
   const sel = document.getElementById('presetSelect');
-  sel.innerHTML = '<option value="">📚 Load Drill...</option>';
-  RAW_LIBRARY.filter(i => cat === 'ALL' || i.cat === cat).forEach(i => {
+  if (typeof RAW_LIBRARY === 'undefined') {
+    sel.innerHTML = '<option value="">⚠️ Upload drills.js to GitHub</option>';
+    return;
+  }
+  const cat = document.getElementById('catFilter').value;
+  const q = document.getElementById('searchDrill').value.toLowerCase().trim();
+  const matches = RAW_LIBRARY.filter(i => (cat === 'ALL' || i.cat === cat) && (!q || (i.title + ' ' + i.obj + ' ' + i.rules).toLowerCase().includes(q)));
+  sel.innerHTML = `<option value="">📚 Load Drill (${matches.length})...</option>`;
+  matches.forEach(i => {
     const o = document.createElement('option'); o.value = i.id; o.innerText = i.title; sel.appendChild(o);
   });
 }
 
 function loadPreset(id) {
+  if (typeof RAW_LIBRARY === 'undefined') return showToast('Upload drills.js to your GitHub folder');
   const item = RAW_LIBRARY.find(i => i.id === id);
   if (!item) return;
-  state.pitch = item.pitch; document.getElementById('pitchType').value = item.pitch;
-  state.tokens = [
-    {type:'player', color:'#7A1C24', label:'M1', x:260, y:200}, {type:'player', color:'#7A1C24', label:'M2', x:420, y:140},
-    {type:'player', color:'#7A1C24', label:'M3', x:560, y:260}, {type:'player', color:'#1976D2', label:'B1', x:380, y:250},
-    {type:'player', color:'#1976D2', label:'B2', x:460, y:300}, {type:'ball', color:'#fff', label:'', x:278, y:200}
-  ];
-  state.lines = [{type:'pass', x1:278, y1:200, x2:402, y2:148}, {type:'pass', x1:435, y1:150, x2:545, y2:250}];
-  state.zones = [];
+  const diag = buildTacticalDiagram(item.tpl);
+  state.pitch = diag.pitch;
+  document.getElementById('pitchType').value = diag.pitch;
+  state.tokens = JSON.parse(JSON.stringify(diag.tokens));
+  state.lines = JSON.parse(JSON.stringify(diag.lines));
+  state.zones = JSON.parse(JSON.stringify(diag.zones || []));
   document.getElementById('sessionTitle').value = item.title;
   document.getElementById('sessionAge').value = item.age;
   document.getElementById('sessionDims').value = item.dims;
   document.getElementById('sessionObjective').value = item.obj;
   document.getElementById('sessionRules').value = item.rules;
   document.getElementById('sessionPoints').value = item.pts;
-  draw(); showToast('Loaded: ' + item.title);
+  document.getElementById('sessionProg').value = item.prog || '';
+  draw();
+  showToast('Loaded: ' + item.title);
 }
 
 // --- SAVE & SHARE ---
 function saveSessionLocal() {
   const title = document.getElementById('sessionTitle').value || 'MIFC Session';
   const saved = JSON.parse(localStorage.getItem('mifc_mobile_sessions') || '{}');
-  saved[title] = { state, title, age: document.getElementById('sessionAge').value, dims: document.getElementById('sessionDims').value, obj: document.getElementById('sessionObjective').value, rules: document.getElementById('sessionRules').value, pts: document.getElementById('sessionPoints').value };
+  saved[title] = { state, title, age: document.getElementById('sessionAge').value, dims: document.getElementById('sessionDims').value, obj: document.getElementById('sessionObjective').value, rules: document.getElementById('sessionRules').value, pts: document.getElementById('sessionPoints').value, prog: document.getElementById('sessionProg').value };
   localStorage.setItem('mifc_mobile_sessions', JSON.stringify(saved));
   showToast('Saved "' + title + '" to device!');
 }
@@ -675,6 +684,7 @@ function renderHubSaved() {
       document.getElementById('sessionTitle').value = s.title; document.getElementById('sessionAge').value = s.age;
       document.getElementById('sessionDims').value = s.dims; document.getElementById('sessionObjective').value = s.obj;
       document.getElementById('sessionRules').value = s.rules; document.getElementById('sessionPoints').value = s.pts;
+      document.getElementById('sessionProg').value = s.prog || '';
       switchView('designer'); draw();
     };
     row.appendChild(btn); box.appendChild(row);
@@ -692,7 +702,18 @@ async function shareCurrentSession() {
   navigator.clipboard.writeText(text); showToast('Session plan copied to clipboard!');
 }
 
-window.onload = () => { populatePresets(); runPitchCalc(); runPHV(); loadPreset('pr1'); renderHubSaved(); };
+window.onload = () => {
+  populatePresets();
+  runPitchCalc();
+  runPHV();
+  if (typeof RAW_LIBRARY !== 'undefined') {
+    document.getElementById('presetSelect').value = 'press_1';
+    loadPreset('press_1');
+  } else {
+    draw();
+  }
+  renderHubSaved();
+};
 </script>
 </body>
 </html>
