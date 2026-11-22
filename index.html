@@ -804,4 +804,69 @@ function loadPreset(id) {
   state.zones = JSON.parse(JSON.stringify(diag.zones || []));
   document.getElementById('sessionTitle').value = item.title;
   document.getElementById('sessionAge').value = item.age;
-  document.get
+  document.getElementById('sessionDims').value = item.dims;
+  document.getElementById('sessionObjective').value = item.obj;
+  document.getElementById('sessionRules').value = item.rules;
+  document.getElementById('sessionPoints').value = item.pts;
+  document.getElementById('sessionProg').value = item.prog || '';
+  draw();
+  showToast('Loaded: ' + item.title);
+}
+
+// --- SAVE & SHARE ---
+function saveSessionLocal() {
+  const title = document.getElementById('sessionTitle').value || 'MIFC Session';
+  const saved = JSON.parse(localStorage.getItem('mifc_mobile_sessions') || '{}');
+  saved[title] = { state, title, age: document.getElementById('sessionAge').value, dims: document.getElementById('sessionDims').value, obj: document.getElementById('sessionObjective').value, rules: document.getElementById('sessionRules').value, pts: document.getElementById('sessionPoints').value, prog: document.getElementById('sessionProg').value };
+  localStorage.setItem('mifc_mobile_sessions', JSON.stringify(saved));
+  showToast('Saved "' + title + '" to device!');
+}
+function renderHubSaved() {
+  const saved = JSON.parse(localStorage.getItem('mifc_mobile_sessions') || '{}');
+  const box = document.getElementById('hubSavedList');
+  const keys = Object.keys(saved);
+  if (!keys.length) { box.innerHTML = 'No custom sessions saved yet.'; return; }
+  box.innerHTML = '';
+  keys.forEach(k => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #eee;';
+    row.innerHTML = `<b>⭐ ${k}</b>`;
+    const btn = document.createElement('button'); btn.className = 'btn btn-outline btn-sm'; btn.innerText = 'Open';
+    btn.onclick = () => {
+      const s = saved[k]; state = s.state;
+      document.getElementById('sessionTitle').value = s.title; document.getElementById('sessionAge').value = s.age;
+      document.getElementById('sessionDims').value = s.dims; document.getElementById('sessionObjective').value = s.obj;
+      document.getElementById('sessionRules').value = s.rules; document.getElementById('sessionPoints').value = s.pts;
+      document.getElementById('sessionProg').value = s.prog || '';
+      switchView('designer'); draw();
+    };
+    row.appendChild(btn); box.appendChild(row);
+  });
+}
+function downloadSessionCard() {
+  const link = document.createElement('a');
+  link.download = 'MIFC_' + document.getElementById('sessionTitle').value.replace(/[^a-z0-9]/gi,'_') + '.png';
+  link.href = canvas.toDataURL('image/png'); link.click(); showToast('Saved Pitch Diagram (.PNG)');
+}
+async function shareCurrentSession() {
+  const title = document.getElementById('sessionTitle').value;
+  const text = `⚽ MIFC Session: ${title}\n📐 ${document.getElementById('sessionDims').value}\n🎯 ${document.getElementById('sessionObjective').value}\n\n${document.getElementById('sessionRules').value}`;
+  if (navigator.share) { try { await navigator.share({ title: 'MIFC Session', text }); return; } catch(e) {} }
+  navigator.clipboard.writeText(text); showToast('Session plan copied to clipboard!');
+}
+
+window.onload = () => {
+  populatePresets();
+  runPitchCalc();
+  runPHV();
+  if (typeof RAW_LIBRARY !== 'undefined') {
+    document.getElementById('presetSelect').value = 'press_1';
+    loadPreset('press_1');
+  } else {
+    draw();
+  }
+  renderHubSaved();
+};
+</script>
+</body>
+</html>
